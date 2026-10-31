@@ -1,0 +1,6 @@
+{
+  "name": "GeoMaster Explorer: Global Physical & Political Geography",
+  "description": "Interactive K-12 physical and political geography learning platform with Leaflet cartography, 3-lens basemaps, Bloom's Taxonomy quest engine, and bilingual EN/ES support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

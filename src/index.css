@@ -1,0 +1,511 @@
+@import "tailwindcss";
+
+@layer base {
+  html, body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  code, pre {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* iOS & Tablet Safe Area Helpers */
+.safe-pb {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+.safe-pt {
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
+
+/* Touch scrolling */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Custom Neon Vector Outlines on hover/selection - contorno nítido sin filtros que generen rectángulos */
+.poly-neon {
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Quitar de raíz cualquier contorno o rectángulo de foco blanco del navegador al seleccionar países */
+*:focus,
+*:focus-visible {
+  outline: none !important;
+}
+
+svg,
+svg *,
+path,
+path:focus,
+path:focus-visible,
+path:active,
+path.leaflet-interactive,
+path.leaflet-interactive:focus,
+path.leaflet-interactive:focus-visible,
+.leaflet-container,
+.leaflet-container *:focus,
+.leaflet-container *:focus-visible,
+.leaflet-interactive,
+.leaflet-interactive:focus,
+.leaflet-interactive:focus-visible,
+.leaflet-pane,
+.leaflet-pane svg,
+.leaflet-pane svg path,
+.leaflet-pane svg path:focus,
+.leaflet-pane svg path:focus-visible,
+.leaflet-layer,
+.leaflet-zoom-animated {
+  outline: none !important;
+  outline-style: none !important;
+  outline-width: 0 !important;
+  box-shadow: none !important;
+  -webkit-focus-ring-color: transparent !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Asegurar interactividad del cursor en todo el polígono aún con relleno 100% transparente */
+path.leaflet-interactive {
+  pointer-events: auto !important;
+}
+
+.poly-wrong-shake {
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+/* Capital Star & Custom HTML Badges */
+.capital-marker-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.capital-star {
+  font-size: 20px;
+  line-height: 1;
+  color: #fbbf24;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.9), 0 0 12px rgba(245, 158, 11, 0.8);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px #fbbf24); }
+  50% { transform: scale(1.15); filter: drop-shadow(0 0 10px #f59e0b); }
+}
+
+.capital-label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #fbbf24;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+
+/* Semantic Badges for Landforms */
+.phys-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.phys-badge:hover {
+  transform: scale(1.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.9), 0 0 10px rgba(255, 255, 255, 0.9);
+}
+
+.phys-badge-river {
+  background-color: #2563eb;
+}
+
+/* Montañas y picos: Fondo oscuro con borde dorado de alto contraste para destacar sobre la nieve blanca */
+.phys-badge-peak,
+.phys-badge-mountain,
+.phys-badge-mountain-contrast {
+  background-color: #020617 !important; /* Slate-950 sólido para que jamás se pierda en la nieve */
+  border: 1.5px solid #fbbf24 !important; /* Borde dorado visible y nítido */
+  color: #ffffff !important;
+  text-shadow: 0 1px 3px #000000, 0 0 5px #000000 !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.8) !important;
+}
+
+.phys-badge-lake {
+  background-color: #0284c7;
+}
+
+.phys-badge-volcano {
+  background-color: #dc2626;
+}
+
+.phys-badge-desert {
+  background-color: #d97706;
+}
+
+.phys-badge-strait,
+.phys-badge-bay,
+.phys-badge-isthmus,
+.phys-badge-fjord {
+  background-color: #0d9488;
+}
+
+/* Quitar de raíz cualquier estilo de divIcon por defecto de Leaflet */
+.leaflet-div-icon,
+.custom-flyto-arrow-icon,
+.custom-phys-icon {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Marcador de Fly To: Flecha roja fina y tarjeta oscura de alto contraste */
+.custom-flyto-arrow-icon {
+  background: transparent !important;
+  border: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: visible !important;
+}
+
+.flyto-marker-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -100%);
+  pointer-events: auto;
+  user-select: none;
+  cursor: pointer;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.9));
+  transition: transform 0.2s ease;
+}
+
+.flyto-marker-wrapper:hover {
+  transform: translate(-50%, -104%) scale(1.06);
+}
+
+.flyto-marker-active {
+  z-index: 2500;
+}
+
+.flyto-badge-card {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background-color: #020617; /* Slate-950 sólido para total legibilidad sobre nieve blanca */
+  border: 1.5px solid #ef4444; /* Borde rojo que conecta con la flecha */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.flyto-card-active {
+  border: 2px solid #ef4444 !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.9), 0 4px 14px rgba(0, 0, 0, 0.95) !important;
+  animation: flyto-active-pulse 2s infinite ease-in-out;
+}
+
+@keyframes flyto-active-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.8), 0 4px 12px rgba(0, 0, 0, 0.9);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 1), 0 4px 16px rgba(0, 0, 0, 0.95);
+  }
+}
+
+.flyto-badge-name {
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 3px #000000, 0 0 4px #000000;
+}
+
+.flyto-badge-elev {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fde047;
+  background: rgba(245, 158, 11, 0.25);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  padding: 0.5px 3.5px;
+  border-radius: 3px;
+}
+
+.flyto-red-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -1px;
+}
+
+.flyto-arrow-svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.85));
+}
+
+/* Marcador de punto discreto cuando el país está seleccionado pero NO tiene Fly To activo */
+.custom-landform-dot-icon {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.custom-landform-dot {
+  width: 12px;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.custom-landform-dot:hover {
+  transform: scale(1.4);
+}
+
+.landform-dot-core {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background-color: #ef4444;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 4px rgba(239, 68, 68, 0.7);
+}
+
+/* Boya marina discreta para masas de agua circundantes antes de Fly To */
+.custom-water-buoy-icon {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.custom-water-buoy {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: rgba(3, 32, 48, 0.9);
+  border: 1.5px solid rgba(56, 189, 248, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.custom-water-buoy:hover {
+  transform: scale(1.25);
+  background: #032030;
+  border-color: #38bdf8;
+}
+
+.water-buoy-icon {
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* Custom leaflet control overrides */
+.leaflet-container {
+  background-color: #020617 !important;
+  font-family: inherit !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7) !important;
+}
+
+.leaflet-popup-tip {
+  background: #0f172a !important;
+}
+
+/* Custom Scrollbar for sidebars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(51, 65, 85, 0.8);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 1);
+}
+
+.custom-mini-satellite-badge {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Cartographic Leader Callout Markers */
+.carto-leader-callout {
+  background: transparent !important;
+  border: none !important;
+  pointer-events: none !important;
+}
+
+.carto-polygon-tooltip {
+  background: rgba(15, 23, 42, 0.95) !important;
+  color: #f8fafc !important;
+  border: 1px solid #38bdf8 !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 3px 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7) !important;
+}
+
+.carto-polygon-tooltip::before {
+  border-top-color: rgba(15, 23, 42, 0.95) !important;
+}
+
+/* =========================================================================
+   MARINE WATER MARKERS (Mares y Océanos Circundantes)
+   ========================================================================= */
+.custom-marine-water-icon {
+  background: transparent !important;
+  border: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: visible !important;
+}
+
+.marine-water-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -100%);
+  pointer-events: auto;
+  user-select: none;
+  cursor: pointer;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.85));
+  transition: transform 0.2s ease;
+}
+
+.marine-water-wrapper:hover {
+  transform: translate(-50%, -105%) scale(1.06);
+}
+
+.marine-water-active {
+  z-index: 2600;
+}
+
+.marine-water-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background-color: #032030; /* Azul marino profundo */
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(14, 165, 233, 0.4);
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.marine-card-ocean {
+  border: 1.5px solid #38bdf8;
+  background: linear-gradient(135deg, #032030 0%, #075985 100%);
+}
+
+.marine-card-sea {
+  border: 1.5px solid #2dd4bf;
+  background: linear-gradient(135deg, #022c22 0%, #0f766e 100%);
+}
+
+.marine-card-active {
+  border: 2px solid #38bdf8 !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.9), 0 4px 16px rgba(0, 0, 0, 0.95) !important;
+  animation: marine-active-pulse 2s infinite ease-in-out;
+}
+
+@keyframes marine-active-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.85), 0 4px 12px rgba(0, 0, 0, 0.9);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 22px rgba(56, 189, 248, 1), 0 4px 18px rgba(0, 0, 0, 0.95);
+  }
+}
+
+.marine-water-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.marine-water-text-block {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.marine-water-name {
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.015em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.marine-water-dir {
+  color: #7dd3fc;
+  font-size: 9px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.marine-water-anchor {
+  margin-top: -2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
