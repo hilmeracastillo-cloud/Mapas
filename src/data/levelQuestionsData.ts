@@ -1485,6 +1485,64 @@ export const LEVEL_4_CONTINENT_QUESTIONS: Record<string, BloomEvaluationQuestion
       explanation_es: 'Arabia Saudita es el mayor productor de agua desalinizada del mundo, transformando sus hidrocarburos en agua potable en plantas costeras a lo largo del Mar Rojo y Golfo Pérsico.',
       teks_code: 'TEKS 6.4C / 6.5A',
       nwea_strand: 'Desalination & Arid Adaptation'
+    },
+    {
+      id: 'l4-as-q3',
+      level: 4,
+      continent_id: 'Asia',
+      bloom_category: 'analyze',
+      bloom_title_en: 'Analyze: The Tibetan Plateau as the "Water Tower of Asia"',
+      bloom_title_es: 'Analizar: La Meseta Tibetana como la "Torre de Agua de Asia"',
+      scenario_en: 'Analyzing continental hydrologic maps of major river origins in Asia.',
+      scenario_es: 'Analizando mapas hidrológicos continentales del nacimiento de los grandes ríos de Asia.',
+      question_en: 'Why is the Tibetan Plateau known among geographers and climatologists as the "Water Tower of Asia"?',
+      question_es: '¿Por qué la meseta del Tíbet es llamada por geógrafos y climatólogos la "Torre de Agua de Asia"?',
+      options_en: [
+        'Because its vast glaciers and high-altitude snowpack feed ten major river systems (including the Yangtze, Yellow, Mekong, Ganges, Indus, and Brahmaputra) that sustain over 1.4 billion people.',
+        'Because massive concrete municipal water tanks were built across the peaks.',
+        'Because heavy rainfall floods the plateau every day without stopping.',
+        'Because the Pacific Ocean flows uphill into the mountains.'
+      ],
+      options_es: [
+        'Porque sus inmensos glaciares y campos de nieve alimentan diez de los mayores sistemas fluviales de Asia (Yangtsé, Amarillo, Mekong, Ganges, Indo y Brahmaputra), sustentando a más de 1,400 millones de personas.',
+        'Porque se construyeron tanques gigantescos de concreto en todas las cumbres.',
+        'Porque lluvias torrenciales inundan la meseta a diario sin descanso.',
+        'Porque el Océano Pacífico sube cuesta arriba hacia las montañas.'
+      ],
+      correct_index: 0,
+      explanation_en: 'The Tibetan Plateau stores more glacial ice than any region outside the North and South Poles, feeding the primary river basins of China, India, Pakistan, and Southeast Asia.',
+      explanation_es: 'La meseta tibetana almacena la mayor cantidad de hielo glaciar fuera de los polos, dando origen a las cuencas fluviales que sostienen la agricultura y vida de casi un tercio de la humanidad.',
+      teks_code: 'TEKS 6.4C / 6.3B',
+      nwea_strand: 'Highland Hydrology & Downstream River Basins'
+    },
+    {
+      id: 'l4-as-q4',
+      level: 4,
+      continent_id: 'Asia',
+      bloom_category: 'evaluate',
+      bloom_title_en: 'Evaluate: The Strait of Malacca Maritime Choke Point',
+      bloom_title_es: 'Evaluar: El Estrecho de Malaca como Punto Estratégico Global',
+      scenario_en: 'Examining global maritime shipping routes between the Indian and Pacific Oceans.',
+      scenario_es: 'Examinando las rutas marítimas globales de comercio entre los océanos Índico y Pacífico.',
+      question_en: 'Why is the narrow Strait of Malacca between Indonesia, Malaysia, and Singapore considered one of the most critical economic choke points on Earth?',
+      question_es: '¿Por qué el estrecho de Malaca entre Indonesia, Malasia y Singapur es considerado uno de los pasos marítimos más críticos del planeta?',
+      options_en: [
+        'It is the shortest sea corridor linking Middle Eastern energy exporters and European markets to industrial East Asian economies (China, Japan, South Korea), carrying over 25% of global traded goods.',
+        'Because ships must pay in gold coins to pass the equator.',
+        'Because it is the only place in the world where ocean water is warm enough for cargo ships.',
+        'Because all other oceans are blocked by polar ice year-round.'
+      ],
+      options_es: [
+        'Es el corredor naval más corto que une los hidrocarburos de Oriente Medio y el comercio europeo con las grandes economías industriales de Asia Oriental (China, Japón, Corea del Sur), canalizando más del 25% del comercio marítimo mundial.',
+        'Porque los barcos deben pagar en monedas de oro para cruzar la línea del ecuador.',
+        'Porque es el único lugar donde el agua marina es apta para barcos portacontenedores.',
+        'Porque todos los demás océanos están congelados todo el año.'
+      ],
+      correct_index: 0,
+      explanation_en: 'The Strait of Malacca is the vital maritime bridge between the Indian and Pacific Oceans. More than 80,000 vessels and roughly a quarter of all traded goods pass through this narrow passage every year.',
+      explanation_es: 'El estrecho de Malaca es el nexo indispensable entre el océano Índico y el Pacífico; por sus aguas transitan más de 80,000 buques anuales y una cuarta parte de todos los bienes comerciados en el planeta.',
+      teks_code: 'TEKS 6.8A',
+      nwea_strand: 'Global Trade Choke Points & Maritime Corridors'
     }
   ],
 

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import { LensType, Language } from '../types/geography';
 import { Layers, ZoomIn, ZoomOut, RotateCcw, Eye, EyeOff } from 'lucide-react';
+import { fetchCountriesGeoJson, getCachedGeoJson, getFeaturesForIso2s } from '../services/geoJsonService';
 
 export interface MapMarkerData {
   lat: number;
@@ -55,6 +56,9 @@ export interface RealLeafletViewerProps {
   polylines?: MapPolylineData[];
   polygons?: MapPolygonData[];
   circles?: MapCircleData[];
+  highlightCountryIso2s?: string[];
+  highlightCountryBorderColor?: string;
+  onCountryClick?: (iso2: string, countryName: string) => void;
   heightClass?: string;
   interactive?: boolean;
   allowLensSwitch?: boolean;
@@ -76,6 +80,9 @@ export const RealLeafletViewer: React.FC<RealLeafletViewerProps> = ({
   polylines = [],
   polygons = [],
   circles = [],
+  highlightCountryIso2s = [],
+  highlightCountryBorderColor = '#fbbf24',
+  onCountryClick,
   heightClass = 'h-72 sm:h-80',
   interactive = true,
   allowLensSwitch = false,
@@ -93,6 +100,7 @@ export const RealLeafletViewer: React.FC<RealLeafletViewerProps> = ({
   const markersGroupRef = useRef<L.LayerGroup | null>(null);
   const polylinesGroupRef = useRef<L.LayerGroup | null>(null);
   const polygonsGroupRef = useRef<L.LayerGroup | null>(null);
+  const geoJsonLayerRef = useRef<L.GeoJSON | null>(null);
 
   const [activeLens, setActiveLens] = useState<LensType>(lens);
   const [currentZoom, setCurrentZoom] = useState<number>(zoom);
@@ -203,6 +211,10 @@ export const RealLeafletViewer: React.FC<RealLeafletViewerProps> = ({
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
+      if (geoJsonLayerRef.current && map) {
+        map.removeLayer(geoJsonLayerRef.current);
+        geoJsonLayerRef.current = null;
+      }
       map.remove();
       mapRef.current = null;
     };
@@ -320,6 +332,73 @@ export const RealLeafletViewer: React.FC<RealLeafletViewerProps> = ({
       }).addTo(group);
     });
   }, [polylines, showOverlays]);
+
+  // Render Real Sovereign Borders in Precision Yellow (#fbbf24) from GeoJSON
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (geoJsonLayerRef.current) {
+      map.removeLayer(geoJsonLayerRef.current);
+      geoJsonLayerRef.current = null;
+    }
+
+    if (!showOverlays || !highlightCountryIso2s || highlightCountryIso2s.length === 0) {
+      return;
+    }
+
+    const renderBorders = (data: any) => {
+      if (!mapRef.current) return;
+      if (geoJsonLayerRef.current) {
+        mapRef.current.removeLayer(geoJsonLayerRef.current);
+        geoJsonLayerRef.current = null;
+      }
+
+      const featureCollection = getFeaturesForIso2s(highlightCountryIso2s, data);
+      if (!featureCollection || !featureCollection.features || featureCollection.features.length === 0) {
+        return;
+      }
+
+      const layer = L.geoJSON(featureCollection, {
+        style: () => ({
+          color: highlightCountryBorderColor || '#fbbf24',
+          weight: 2.5,
+          opacity: 1,
+          fill: true,
+          fillColor: '#000000',
+          fillOpacity: 0.0001, // 100% transparent interior: real map is visible beneath it
+          className: 'poly-neon no-focus-outline',
+        }),
+        onEachFeature: (feature, l) => {
+          const p = feature.properties || {};
+          const countryName = p.name || p.ADMIN || '';
+          const iso2 = (p.iso2 || p.ISO_A2 || p['ISO3166-1-Alpha-2'] || '').toUpperCase();
+
+          l.bindTooltip(`<strong>${countryName}</strong><br/><span style="color:#fbbf24; font-size:10px;">${currentLang === 'es' ? 'Frontera Soberana Jurisdiccional' : 'Sovereign Jurisdictional Border'}</span>`, {
+            sticky: true,
+            direction: 'top',
+            className: 'bg-slate-900/90 text-white text-xs px-2 py-1 rounded shadow-lg border border-amber-500/50',
+          });
+
+          if (onCountryClick) {
+            l.on('click', () => {
+              onCountryClick(iso2, countryName);
+            });
+          }
+        },
+      }).addTo(mapRef.current);
+
+      geoJsonLayerRef.current = layer;
+    };
+
+    // Render immediately from local preset boundaries
+    renderBorders(getCachedGeoJson());
+
+    // In background, ensure full dataset is loaded and refresh if needed
+    fetchCountriesGeoJson().then((fullData) => {
+      if (fullData) renderBorders(fullData);
+    });
+  }, [highlightCountryIso2s, highlightCountryBorderColor, showOverlays, currentLang, onCountryClick]);
 
   // Render Callout Markers with Intense Red Pointer Arrows and Outside Labels
   useEffect(() => {

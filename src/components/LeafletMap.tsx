@@ -4,6 +4,7 @@ import { LensType, AppMode, Language, CountryDossierData, LandformFeature, Seman
 import { PedagogicalLevel, ContinentId } from '../types/progression';
 import { CONTINENTS_DATA, OCEANS_SEAS_DATA } from '../data/continentsOceansData';
 import { getCountrySurroundingWaters } from '../data/surroundingWatersData';
+import { fetchCountriesGeoJson } from '../services/geoJsonService';
 
 interface LeafletMapProps {
   currentLens: LensType;
@@ -135,11 +136,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     let isMounted = true;
     setIsLoadingGeo(true);
 
-    fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch country geojson');
-        return res.json();
-      })
+    fetchCountriesGeoJson()
       .then((data) => {
         if (isMounted) {
           setGeoData(data);
@@ -148,7 +145,6 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       })
       .catch((err) => {
         console.warn('Could not load online GeoJSON, using lightweight fallback geometries:', err);
-        // Fallback: provide basic bounds for starter countries
         if (isMounted) {
           setIsLoadingGeo(false);
         }

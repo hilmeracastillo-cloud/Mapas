@@ -43,6 +43,7 @@ export const PoliticalMapVisualExhibit: React.FC<VisualExhibitProps> = ({
   const isEs = currentLang === 'es';
   const [selectedPreset, setSelectedPreset] = useState<'europe' | 'south_america' | 'sahara'>('europe');
   const [selectedFeature, setSelectedFeature] = useState<'sovereignty' | 'capitals' | 'borders' | 'microstates' | 'cities' | 'all'>('sovereignty');
+  const [selectedCountryIso, setSelectedCountryIso] = useState<string | null>(null);
 
   // Preset Configurations with Real Coordinates, Polygons & Offset Markers with Leader Arrows
   const presets = {
@@ -84,28 +85,14 @@ export const PoliticalMapVisualExhibit: React.FC<VisualExhibitProps> = ({
           label: isEs ? 'Tratado de los Pirineos (Límite España-Francia)' : 'Treaty of the Pyrenees (Spain-France Border)'
         }
       ] as MapPolylineData[],
-      polygons: [
-        {
-          positions: [
-            [43.7, -7.5], [43.5, -2.0], [42.5, 3.0], [36.8, -2.0], [36.2, -5.5], [37.0, -7.5], [41.8, -8.8]
-          ] as [number, number][],
-          color: '#f59e0b',
-          fillColor: '#f59e0b',
-          fillOpacity: 0.12,
-          weight: 2.5,
-          label: isEs ? 'España (Jurisdicción Soberana Constitucional)' : 'Spain (Sovereign State Jurisdiction)'
-        },
-        {
-          positions: [
-            [49.0, -1.5], [50.8, 2.5], [48.8, 7.5], [44.0, 7.0], [42.5, 3.0], [43.5, -1.8], [47.5, -2.5]
-          ] as [number, number][],
-          color: '#3b82f6',
-          fillColor: '#3b82f6',
-          fillOpacity: 0.12,
-          weight: 2.5,
-          label: isEs ? 'Francia (Jurisdicción Soberana Constitucional)' : 'France (Sovereign State Jurisdiction)'
-        }
-      ] as MapPolygonData[]
+      countries: [
+        { iso2: 'ES', flag: '🇪🇸', name_es: 'España', name_en: 'Spain' },
+        { iso2: 'FR', flag: '🇫🇷', name_es: 'Francia', name_en: 'France' },
+        { iso2: 'DE', flag: '🇩🇪', name_es: 'Alemania', name_en: 'Germany' },
+        { iso2: 'IT', flag: '🇮🇹', name_es: 'Italia', name_en: 'Italy' },
+        { iso2: 'PT', flag: '🇵🇹', name_es: 'Portugal', name_en: 'Portugal' },
+      ],
+      highlightIso2s: ['ES', 'FR', 'DE', 'IT', 'PT'],
     },
     south_america: {
       center: [-14.0, -60.0] as [number, number],
@@ -140,24 +127,20 @@ export const PoliticalMapVisualExhibit: React.FC<VisualExhibitProps> = ({
           label: isEs ? 'Fronteras Amazónicas Acordadas por Tratados' : 'Amazonian Treaty Borders'
         }
       ] as MapPolylineData[],
-      polygons: [
-        {
-          positions: [
-            [-2.0, -60.0], [-3.0, -42.0], [-10.0, -37.0], [-23.0, -42.0], [-30.0, -52.0], [-20.0, -58.0], [-10.0, -69.0]
-          ] as [number, number][],
-          color: '#10b981',
-          fillColor: '#10b981',
-          fillOpacity: 0.1,
-          weight: 2.5,
-          label: isEs ? 'Brasil (Soberanía Territorial de la República Federal)' : 'Brazil (Federal Sovereign Territory)'
-        }
-      ] as MapPolygonData[]
+      countries: [
+        { iso2: 'BR', flag: '🇧🇷', name_es: 'Brasil', name_en: 'Brazil' },
+        { iso2: 'CO', flag: '🇨🇴', name_es: 'Colombia', name_en: 'Colombia' },
+        { iso2: 'PE', flag: '🇵🇪', name_es: 'Perú', name_en: 'Peru' },
+        { iso2: 'BO', flag: '🇧🇴', name_es: 'Bolivia', name_en: 'Bolivia' },
+        { iso2: 'AR', flag: '🇦🇷', name_es: 'Argentina', name_en: 'Argentina' },
+      ],
+      highlightIso2s: ['BR', 'CO', 'PE', 'BO', 'AR'],
     },
     sahara: {
       center: [24.0, 25.0] as [number, number],
       zoom: 5,
-      name_es: 'Líneas Geométricas de Tratados (Egipto, Sudán, Libia)',
-      name_en: 'Geometric Treaty Boundaries (Egypt, Sudan, Libya)',
+      name_es: 'Norte de África (Egipto, Libia, Sudán)',
+      name_en: 'North Africa (Egypt, Libya, Sudan)',
       capitals: [
         { lat: 30.0444, lng: 31.2357, title: 'El Cairo', sublabel: isEs ? 'Capital de Egipto' : 'Capital of Egypt', isCapital: true, offsetDirection: 'bottom-right' as const },
         { lat: 32.8872, lng: 13.1913, title: 'Trípoli', sublabel: isEs ? 'Capital de Libia' : 'Capital of Libya', isCapital: true, offsetDirection: 'bottom-left' as const },
@@ -191,53 +174,53 @@ export const PoliticalMapVisualExhibit: React.FC<VisualExhibitProps> = ({
           label: isEs ? 'Meridiano 25°E: Límite Internacional Egipto-Libia' : '25th Meridian: Egypt-Libya Boundary'
         }
       ] as MapPolylineData[],
-      polygons: [
-        {
-          positions: [
-            [31.5, 25.0], [31.5, 34.0], [27.8, 34.3], [22.0, 36.8], [22.0, 25.0]
-          ] as [number, number][],
-          color: '#38bdf8',
-          fillColor: '#38bdf8',
-          fillOpacity: 0.1,
-          weight: 2.5,
-          label: isEs ? 'Egipto (Jurisdicción Soberana)' : 'Egypt (Sovereign Jurisdiction)'
-        }
-      ] as MapPolygonData[]
+      countries: [
+        { iso2: 'EG', flag: '🇪🇬', name_es: 'Egipto', name_en: 'Egypt' },
+        { iso2: 'LY', flag: '🇱🇾', name_es: 'Libia', name_en: 'Libya' },
+        { iso2: 'SD', flag: '🇸🇩', name_es: 'Sudán', name_en: 'Sudan' },
+      ],
+      highlightIso2s: ['EG', 'LY', 'SD'],
     }
   };
 
   const activePresetData = presets[selectedPreset];
 
   // STRICT SINGLE-ELEMENT FOCUS LOGIC:
-  // "al hacer click en cada elemento se presenta el elemento en el map. al seleccionar otro elemento se elemina el anterior y se muestra en nuevo."
   let activePolygons: MapPolygonData[] = [];
   let activeMarkers: MapMarkerData[] = [];
   let activePolylines: MapPolylineData[] = [];
+  let activeHighlightIso2s: string[] = [];
 
   if (selectedFeature === 'sovereignty') {
-    activePolygons = activePresetData.polygons;
+    activePolygons = []; // Zero rough polygons! Real borders only!
     activeMarkers = [];
     activePolylines = [];
+    activeHighlightIso2s = selectedCountryIso ? [selectedCountryIso] : activePresetData.highlightIso2s;
   } else if (selectedFeature === 'capitals') {
     activePolygons = [];
     activeMarkers = activePresetData.capitals;
     activePolylines = [];
+    activeHighlightIso2s = [];
   } else if (selectedFeature === 'borders') {
     activePolygons = [];
     activeMarkers = [];
     activePolylines = activePresetData.polylines;
+    activeHighlightIso2s = [];
   } else if (selectedFeature === 'microstates') {
     activePolygons = [];
     activeMarkers = activePresetData.microstates;
     activePolylines = [];
+    activeHighlightIso2s = [];
   } else if (selectedFeature === 'cities') {
     activePolygons = [];
     activeMarkers = activePresetData.cities;
     activePolylines = [];
+    activeHighlightIso2s = [];
   } else if (selectedFeature === 'all') {
-    activePolygons = activePresetData.polygons;
+    activePolygons = [];
     activeMarkers = [...activePresetData.capitals, ...activePresetData.microstates, ...activePresetData.cities];
     activePolylines = activePresetData.polylines;
+    activeHighlightIso2s = activePresetData.highlightIso2s; // Real sovereign borders in yellow alongside all elements
   }
 
   return (
@@ -253,6 +236,9 @@ export const PoliticalMapVisualExhibit: React.FC<VisualExhibitProps> = ({
           markers={activeMarkers}
           polylines={activePolylines}
           polygons={activePolygons}
+          highlightCountryIso2s={activeHighlightIso2s}
+          highlightCountryBorderColor="#fbbf24"
+          onCountryClick={(iso) => setSelectedCountryIso(iso)}
           heightClass="h-full flex-1"
           interactive={true}
           hideHeader={true}
@@ -341,33 +327,69 @@ export const PoliticalMapVisualExhibit: React.FC<VisualExhibitProps> = ({
                 onClick={() => setSelectedFeature('sovereignty')}
                 className={`w-full p-2.5 text-left text-xs transition-all flex items-center justify-between ${
                   selectedFeature === 'sovereignty'
-                    ? 'bg-blue-600 text-white font-bold shadow-md'
+                    ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md'
                     : 'bg-slate-950 text-slate-300 hover:bg-slate-800 hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-base shrink-0">🎨</span>
-                  <span className="truncate">{isEs ? '1. Soberanía y Jurisdicción Estatal' : '1. State Sovereignty & Jurisdiction'}</span>
+                  <span className="text-base shrink-0">💛</span>
+                  <span className="truncate">{isEs ? '1. Soberanía y Jurisdicción (Fronteras Reales en Amarillo)' : '1. State Sovereignty (Real Yellow Borders)'}</span>
                 </div>
-                <span className="text-[10px] opacity-80 font-mono shrink-0">
-                  {selectedFeature === 'sovereignty' ? '▼' : isEs ? 'Polígonos ▶' : 'Polygons ▶'}
+                <span className="text-[10px] opacity-90 font-mono shrink-0">
+                  {selectedFeature === 'sovereignty' ? '▼' : isEs ? 'Fronteras Reales ▶' : 'Real Borders ▶'}
                 </span>
               </button>
 
               {selectedFeature === 'sovereignty' && (
-                <div className="p-3.5 bg-slate-950/95 border-t border-blue-500/40 text-xs text-slate-300 space-y-2 animate-in fade-in duration-150">
-                  <strong className="text-blue-300 font-bold flex items-center gap-1.5">
-                    <span>🎨</span>
-                    <span>{isEs ? 'Definición de Soberanía y Jurisdicción:' : 'State Sovereignty & Jurisdiction Definition:'}</span>
+                <div className="p-3.5 bg-slate-950/95 border-t border-amber-500/40 text-xs text-slate-300 space-y-3 animate-in fade-in duration-150">
+                  <strong className="text-amber-400 font-bold flex items-center gap-1.5">
+                    <span>💛</span>
+                    <span>{isEs ? 'Fronteras Soberanas Reales en Amarillo:' : 'Real Sovereign Borders in Yellow:'}</span>
                   </strong>
                   <p className="leading-relaxed">
                     {isEs
-                      ? 'Los colores asignados en un mapa político diferencian territorios bajo constituciones y gobiernos distintos. Un color NO representa clima ni vegetación: sirve para delimitar el alcance jurídico del Estado.'
-                      : 'Colors differentiate separate constitutional jurisdictions without indicating weather or terrain.'}
+                      ? 'La soberanía territorial de cada Estado se delimita mediante sus fronteras reales exactas trazadas con precisión en amarillo nítido, sin polígonos toscos que tapen el mapa. Esta línea define con exactitud la jurisdicción constitucional donde rigen las leyes y el gobierno de cada nación.'
+                      : 'State legal sovereignty is demarcated using its real, exact sovereign borders drawn with precision in crisp yellow, keeping the map fully legible.'}
                   </p>
-                  <div className="text-[11px] text-slate-300 bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
-                    <strong className="text-amber-300">{isEs ? 'En el mapa ves:' : 'On the map you see:'}</strong>{' '}
-                    {isEs ? 'Los polígonos coloreados de cada país sin etiquetas que tapen el terreno.' : 'Tinted national polygons with clean boundaries.'}
+
+                  {/* Interactive Country Selector Filter */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] font-mono font-bold text-amber-300 uppercase tracking-wider block">
+                      {isEs ? 'Resaltar País con su Frontera Real:' : 'Highlight Country with Real Border:'}
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCountryIso(null)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border ${
+                          selectedCountryIso === null
+                            ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow'
+                            : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800'
+                        }`}
+                      >
+                        ⭐ {isEs ? 'Todos los Países' : 'All Countries'}
+                      </button>
+                      {activePresetData.countries.map((c) => (
+                        <button
+                          key={c.iso2}
+                          type="button"
+                          onClick={() => setSelectedCountryIso(c.iso2)}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border flex items-center gap-1 ${
+                            selectedCountryIso === c.iso2
+                              ? 'bg-amber-400 text-slate-950 border-amber-300 font-bold shadow'
+                              : 'bg-slate-900 text-slate-300 border-slate-800 hover:bg-slate-800'
+                          }`}
+                        >
+                          <span>{c.flag}</span>
+                          <span>{isEs ? c.name_es : c.name_en}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="text-[11px] text-amber-200/90 bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/30">
+                    <strong className="text-amber-300">{isEs ? 'En el mapa observas:' : 'On the map you observe:'}</strong>{' '}
+                    {isEs ? 'El contorno real preciso en amarillo (exactamente igual al resto de la aplicación), permitiendo apreciar la forma geográfica soberana sin tapar ciudades ni accidentes.' : 'The exact real contour in yellow, perfectly outlining the sovereign geography without covering cities or landforms.'}
                   </div>
                 </div>
               )}
@@ -574,7 +596,7 @@ export const PoliticalMapVisualExhibit: React.FC<VisualExhibitProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-1.5">
             <button
               type="button"
-              onClick={() => setSelectedPreset('europe')}
+              onClick={() => { setSelectedPreset('europe'); setSelectedCountryIso(null); }}
               className={`p-2.5 rounded-xl text-left text-xs font-semibold transition-all border flex items-center justify-between ${
                 selectedPreset === 'europe'
                   ? 'bg-blue-600 text-white border-blue-400 shadow-md font-bold'
@@ -586,7 +608,7 @@ export const PoliticalMapVisualExhibit: React.FC<VisualExhibitProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => setSelectedPreset('south_america')}
+              onClick={() => { setSelectedPreset('south_america'); setSelectedCountryIso(null); }}
               className={`p-2.5 rounded-xl text-left text-xs font-semibold transition-all border flex items-center justify-between ${
                 selectedPreset === 'south_america'
                   ? 'bg-blue-600 text-white border-blue-400 shadow-md font-bold'
@@ -598,15 +620,15 @@ export const PoliticalMapVisualExhibit: React.FC<VisualExhibitProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => setSelectedPreset('sahara')}
+              onClick={() => { setSelectedPreset('sahara'); setSelectedCountryIso(null); }}
               className={`p-2.5 rounded-xl text-left text-xs font-semibold transition-all border flex items-center justify-between ${
                 selectedPreset === 'sahara'
                   ? 'bg-blue-600 text-white border-blue-400 shadow-md font-bold'
                   : 'bg-slate-950 text-slate-300 hover:bg-slate-800 border-slate-800'
               }`}
             >
-              <span>📐 {isEs ? 'Fronteras Geométricas' : 'Treaty Borders'}</span>
-              <span className="text-[10px] opacity-75">22°N Sahara</span>
+              <span>🌍 {isEs ? 'Norte de África (Sáhara)' : 'North Africa (Sahara)'}</span>
+              <span className="text-[10px] opacity-75">El Cairo, Trípoli, Jartum</span>
             </button>
           </div>
         </div>
@@ -1248,79 +1270,179 @@ export const PhysicalHypsometricVisualExhibit: React.FC<VisualExhibitProps> = ({
       <div className="w-full lg:w-[65%] xl:w-[68%] h-[55vh] min-h-[460px] lg:h-full lg:min-h-0 p-2 sm:p-3 flex flex-col bg-slate-950/80 border-b lg:border-b-0 lg:border-r border-slate-800 shrink-0 gap-2">
         
         {/* COMPACT CROSS-SECTION PROFILE HUD DOCKED AT TOP OF THE MAP */}
-        <div className="relative w-full h-24 sm:h-28 bg-slate-900 rounded-xl overflow-hidden border border-slate-800 shrink-0 shadow-inner">
-          <svg viewBox="0 0 960 220" className="w-full h-full select-none" preserveAspectRatio="none">
-            <rect width="960" height="220" fill="#090d16" />
-            <line x1="0" y1="130" x2="350" y2="130" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="4 2" />
-            <text x="10" y="124" fill="#38bdf8" fontSize="11" fontWeight="bold">0 m ({isEs ? 'Nivel del Mar' : 'Sea Level'})</text>
+        <div className="relative w-full bg-slate-900 rounded-xl overflow-hidden border border-slate-800 shrink-0 shadow-inner flex flex-col">
+          <div className="w-full h-20 sm:h-24">
+            <svg viewBox="0 0 960 220" className="w-full h-full select-none" preserveAspectRatio="none">
+              <rect width="960" height="220" fill="#090d16" />
+              <line x1="0" y1="130" x2="350" y2="130" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="4 2" />
+              <text x="10" y="124" fill="#38bdf8" fontSize="11" fontWeight="bold">0 m ({isEs ? 'Nivel del Mar' : 'Sea Level'})</text>
 
-            {/* Zone 0: Trench */}
-            <polygon
-              points="0,130 0,220 160,220 130,190 90,155"
-              fill="#082f49"
-              stroke={activeElevationZone === 0 ? '#38bdf8' : 'none'}
-              strokeWidth="3"
-              className="cursor-pointer hover:opacity-90 transition-all"
+              {/* Zone 0: Trench */}
+              <polygon
+                points="0,130 0,220 160,220 130,190 90,155"
+                fill="#082f49"
+                stroke={activeElevationZone === 0 ? '#38bdf8' : 'none'}
+                strokeWidth="3"
+                className="cursor-pointer hover:opacity-90 transition-all"
+                onClick={() => { setActiveElevationZone(0); setSelectedExampleIndex(0); }}
+              />
+              <text x="45" y="180" fill="#93c5fd" fontSize="11" fontWeight="bold">&lt; -4,000m</text>
+              <text x="45" y="198" fill="#38bdf8" fontSize="10" fontWeight="bold">({isEs ? 'Azul' : 'Navy'})</text>
+
+              {/* Zone 1: Shelf */}
+              <polygon
+                points="90,155 130,190 220,175 270,145 290,130 0,130"
+                fill="#06b6d4"
+                fillOpacity="0.8"
+                stroke={activeElevationZone === 1 ? '#ffffff' : 'none'}
+                strokeWidth="2.5"
+                className="cursor-pointer hover:opacity-90 transition-all"
+                onClick={() => { setActiveElevationZone(1); setSelectedExampleIndex(0); }}
+              />
+              <text x="175" y="170" fill="#082f49" fontSize="11" fontWeight="bold">0 a -200m</text>
+              <text x="175" y="188" fill="#082f49" fontSize="10" fontWeight="bold">({isEs ? 'Celeste' : 'Cyan'})</text>
+
+              {/* Zone 2: Lowland */}
+              <polygon
+                points="290,130 430,120 470,105 470,220 290,220"
+                fill="#16a34a"
+                stroke={activeElevationZone === 2 ? '#facc15' : 'none'}
+                strokeWidth="3.5"
+                className="cursor-pointer hover:opacity-90 transition-all"
+                onClick={() => { setActiveElevationZone(2); setSelectedExampleIndex(0); }}
+              />
+              <text x="350" y="155" fill="#f0fdf4" fontSize="12" fontWeight="black">0 – 200m</text>
+              <text x="350" y="175" fill="#dcfce7" fontSize="11" fontWeight="bold">({isEs ? 'Verde' : 'Green'})</text>
+
+              {/* Zone 3: Plateau (Yellow) - Explicitly centered and high-contrast */}
+              <polygon
+                points="470,105 560,90 620,70 620,220 470,220"
+                fill="#eab308"
+                stroke={activeElevationZone === 3 ? '#ffffff' : 'none'}
+                strokeWidth="2.5"
+                className="cursor-pointer hover:opacity-90 transition-all"
+                onClick={() => { setActiveElevationZone(3); setSelectedExampleIndex(0); }}
+              />
+              <rect x="478" y="125" width="134" height="46" rx="6" fill="#fef08a" fillOpacity="0.9" stroke="#ca8a04" strokeWidth="1" />
+              <text x="545" y="145" textAnchor="middle" fill="#713f12" fontSize="12" fontWeight="900">200 – 1,000m</text>
+              <text x="545" y="163" textAnchor="middle" fill="#854d0e" fontSize="11" fontWeight="bold">({isEs ? 'Amarillo' : 'Yellow'})</text>
+
+              {/* Zone 4: Mountains */}
+              <polygon
+                points="620,70 720,35 760,20 780,45 820,18 840,55 840,220 620,220"
+                fill="#92400e"
+                stroke={activeElevationZone === 4 ? '#facc15' : 'none'}
+                strokeWidth="3"
+                className="cursor-pointer hover:opacity-90 transition-all"
+                onClick={() => { setActiveElevationZone(4); setSelectedExampleIndex(0); }}
+              />
+              <text x="730" y="130" textAnchor="middle" fill="#fef3c7" fontSize="12" fontWeight="black">1,000 – 3,500m</text>
+              <text x="730" y="150" textAnchor="middle" fill="#fed7aa" fontSize="11" fontWeight="bold">({isEs ? 'Marrón' : 'Brown'})</text>
+
+              {/* Zone 5: Glacier Peaks */}
+              <polygon
+                points="750,25 760,20 770,35 810,22 820,18 830,30"
+                fill="#f8fafc"
+                stroke="#ffffff"
+                strokeWidth="1.5"
+                className="cursor-pointer"
+                onClick={() => { setActiveElevationZone(5); setSelectedExampleIndex(0); }}
+              />
+              <text x="895" y="110" textAnchor="middle" fill="#f8fafc" fontSize="12" fontWeight="black">&gt; 3,500m ★</text>
+              <text x="895" y="130" textAnchor="middle" fill="#e2e8f0" fontSize="11" fontWeight="bold">({isEs ? 'Blanco' : 'White'})</text>
+            </svg>
+          </div>
+
+          {/* BARRA DE LEYENDA DEL PERFIL HIPSOMÉTRICO (Incluyendo Amarillo de forma prominente) */}
+          <div className="px-2 sm:px-3 py-1.5 bg-slate-950/95 border-t border-slate-800 flex items-center justify-between gap-1 overflow-x-auto text-[10px] sm:text-[11px] font-mono shrink-0">
+            <span className="text-slate-400 font-bold hidden sm:inline mr-1 shrink-0">
+              🏷️ {isEs ? 'Leyenda:' : 'Legend:'}
+            </span>
+
+            {/* 0. Azul Marino */}
+            <button
+              type="button"
               onClick={() => { setActiveElevationZone(0); setSelectedExampleIndex(0); }}
-            />
-            <text x="15" y="200" fill="#93c5fd" fontSize="11" fontWeight="bold">&lt; -4,000m</text>
+              className={`px-2 py-0.5 rounded flex items-center gap-1.5 transition-all border shrink-0 ${
+                activeElevationZone === 0
+                  ? 'bg-sky-950 text-sky-200 border-sky-400 font-bold ring-1 ring-sky-400/50'
+                  : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-white'
+              }`}
+            >
+              <span className="w-2.5 h-2.5 rounded-full border border-sky-400 shrink-0 bg-[#082f49]" />
+              <span>&lt; -4k m <span className="opacity-75">({isEs ? 'Azul' : 'Navy'})</span></span>
+            </button>
 
-            {/* Zone 1: Shelf */}
-            <polygon
-              points="90,155 130,190 220,175 270,145 290,130 0,130"
-              fill="#06b6d4"
-              fillOpacity="0.8"
-              stroke={activeElevationZone === 1 ? '#ffffff' : 'none'}
-              strokeWidth="2.5"
-              className="cursor-pointer hover:opacity-90 transition-all"
+            {/* 1. Celeste */}
+            <button
+              type="button"
               onClick={() => { setActiveElevationZone(1); setSelectedExampleIndex(0); }}
-            />
-            <text x="120" y="150" fill="#082f49" fontSize="11" fontWeight="bold">0 a -200m</text>
+              className={`px-2 py-0.5 rounded flex items-center gap-1.5 transition-all border shrink-0 ${
+                activeElevationZone === 1
+                  ? 'bg-cyan-950 text-cyan-200 border-cyan-400 font-bold ring-1 ring-cyan-400/50'
+                  : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-white'
+              }`}
+            >
+              <span className="w-2.5 h-2.5 rounded-full border border-cyan-300 shrink-0 bg-[#06b6d4]" />
+              <span>0 a -200 m <span className="opacity-75">({isEs ? 'Celeste' : 'Cyan'})</span></span>
+            </button>
 
-            {/* Zone 2: Lowland */}
-            <polygon
-              points="290,130 430,120 470,105 470,220 290,220"
-              fill="#16a34a"
-              stroke={activeElevationZone === 2 ? '#facc15' : 'none'}
-              strokeWidth="3.5"
-              className="cursor-pointer hover:opacity-90 transition-all"
+            {/* 2. Verde */}
+            <button
+              type="button"
               onClick={() => { setActiveElevationZone(2); setSelectedExampleIndex(0); }}
-            />
-            <text x="320" y="115" fill="#f0fdf4" fontSize="12" fontWeight="black">0 – 200m ({isEs ? 'Verde' : 'Green'})</text>
+              className={`px-2 py-0.5 rounded flex items-center gap-1.5 transition-all border shrink-0 ${
+                activeElevationZone === 2
+                  ? 'bg-emerald-950 text-emerald-200 border-emerald-400 font-bold ring-1 ring-emerald-400/50'
+                  : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-white'
+              }`}
+            >
+              <span className="w-2.5 h-2.5 rounded-full border border-emerald-300 shrink-0 bg-[#16a34a]" />
+              <span>0 – 200 m <span className="opacity-75">({isEs ? 'Verde' : 'Green'})</span></span>
+            </button>
 
-            {/* Zone 3: Plateau */}
-            <polygon
-              points="470,105 560,90 620,70 620,220 470,220"
-              fill="#eab308"
-              stroke={activeElevationZone === 3 ? '#ffffff' : 'none'}
-              strokeWidth="2.5"
-              className="cursor-pointer hover:opacity-90 transition-all"
+            {/* 3. Amarillo - EXPLICITAMENTE DESTACADO Y VISIBLE */}
+            <button
+              type="button"
               onClick={() => { setActiveElevationZone(3); setSelectedExampleIndex(0); }}
-            />
-            <text x="495" y="85" fill="#422006" fontSize="11" fontWeight="bold">200 – 1,000m</text>
+              className={`px-2 py-0.5 rounded flex items-center gap-1.5 transition-all border shrink-0 ${
+                activeElevationZone === 3
+                  ? 'bg-yellow-950 text-yellow-200 border-yellow-400 font-bold ring-2 ring-yellow-400/60 shadow'
+                  : 'bg-slate-900/80 text-yellow-300 border-yellow-500/40 hover:bg-slate-800'
+              }`}
+            >
+              <span className="w-2.5 h-2.5 rounded-full border border-yellow-200 shrink-0 bg-[#eab308]" />
+              <span className="font-bold text-yellow-300">200 – 1k m <span className="text-yellow-400 font-extrabold">({isEs ? 'Amarillo' : 'Yellow'})</span></span>
+            </button>
 
-            {/* Zone 4: Mountains */}
-            <polygon
-              points="620,70 720,35 760,20 780,45 820,18 840,55 840,220 620,220"
-              fill="#92400e"
-              stroke={activeElevationZone === 4 ? '#facc15' : 'none'}
-              strokeWidth="3"
-              className="cursor-pointer hover:opacity-90 transition-all"
+            {/* 4. Marrón */}
+            <button
+              type="button"
               onClick={() => { setActiveElevationZone(4); setSelectedExampleIndex(0); }}
-            />
-            <text x="655" y="55" fill="#fef3c7" fontSize="11" fontWeight="bold">1,000 – 3,500m</text>
+              className={`px-2 py-0.5 rounded flex items-center gap-1.5 transition-all border shrink-0 ${
+                activeElevationZone === 4
+                  ? 'bg-amber-950 text-amber-200 border-amber-400 font-bold ring-1 ring-amber-400/50'
+                  : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-white'
+              }`}
+            >
+              <span className="w-2.5 h-2.5 rounded-full border border-amber-300 shrink-0 bg-[#92400e]" />
+              <span>1k – 3.5k m <span className="opacity-75">({isEs ? 'Marrón' : 'Brown'})</span></span>
+            </button>
 
-            {/* Zone 5: Glacier Peaks */}
-            <polygon
-              points="750,25 760,20 770,35 810,22 820,18 830,30"
-              fill="#f8fafc"
-              stroke="#ffffff"
-              strokeWidth="1.5"
-              className="cursor-pointer"
+            {/* 5. Blanco */}
+            <button
+              type="button"
               onClick={() => { setActiveElevationZone(5); setSelectedExampleIndex(0); }}
-            />
-            <text x="735" y="14" fill="#f8fafc" fontSize="11" fontWeight="black">&gt; 3,500m ★</text>
-          </svg>
+              className={`px-2 py-0.5 rounded flex items-center gap-1.5 transition-all border shrink-0 ${
+                activeElevationZone === 5
+                  ? 'bg-slate-800 text-white border-white font-bold ring-1 ring-white/60'
+                  : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-white'
+              }`}
+            >
+              <span className="w-2.5 h-2.5 rounded-full border border-slate-400 shrink-0 bg-[#f8fafc]" />
+              <span>&gt; 3.5k m <span className="opacity-75">({isEs ? 'Blanco' : 'White'})</span></span>
+            </button>
+          </div>
         </div>
 
         {/* Real Leaflet Physical Map taking full remaining height */}
