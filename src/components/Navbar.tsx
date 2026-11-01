@@ -1,6 +1,6 @@
 import React from 'react';
 import { AppMode, LensType, Language } from '../types/geography';
-import { Compass, BookOpen, Target, Globe, Layers, Upload, Award, BookMarked, HelpCircle, GraduationCap } from 'lucide-react';
+import { Compass, BookOpen, Target, Globe, Layers, Upload, Award, BookMarked, HelpCircle, GraduationCap, Trophy } from 'lucide-react';
 
 interface NavbarProps {
   currentMode: AppMode;
@@ -22,6 +22,9 @@ interface NavbarProps {
   onJumpToContinent: (continent: string) => void;
   isPlayMode?: boolean;
   onOpenPlayGuide?: () => void;
+  playSubMode?: 'explore' | 'trivia';
+  onChangePlaySubMode?: (subMode: 'explore' | 'trivia') => void;
+  triviaScoreText?: string;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -44,11 +47,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   onJumpToContinent,
   isPlayMode = false,
   onOpenPlayGuide,
+  playSubMode = 'explore',
+  onChangePlaySubMode,
+  triviaScoreText,
 }) => {
   const isEs = currentLang === 'es';
 
   // =========================================================================
-  // JUGAR / PLAY MODE: ONLY POLITICO, RELIEVE, SATELITE & MENU PRINCIPAL
+  // JUGAR / PLAY MODE: EXPLORAR vs TRIVIA, POLITICO, RELIEVE, SATELITE & MENU PRINCIPAL
   // =========================================================================
   if (isPlayMode) {
     return (
@@ -66,7 +72,45 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* The 4 Exclusive Buttons: Politico, Relieve, Satelite, Menu Principal */}
+        {/* Center: Explorar vs Trivia Switcher */}
+        {onChangePlaySubMode && (
+          <div className="flex items-center bg-slate-950/80 p-0.5 sm:p-1 rounded-xl border border-slate-800 shadow-inner">
+            <button
+              type="button"
+              onClick={() => onChangePlaySubMode('explore')}
+              title={isEs ? 'Modo Explorar: Navegación libre y fichas' : 'Explore Mode: Free map navigation'}
+              className={`px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all ${
+                playSubMode === 'explore'
+                  ? 'bg-emerald-500 text-slate-950 shadow-md font-black ring-1 ring-emerald-300'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <Compass className="w-3.5 h-3.5" />
+              <span>{isEs ? 'Explorar' : 'Explore'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onChangePlaySubMode('trivia')}
+              title={isEs ? 'Modo Trivia: Desafío de Continentes, Países, Capitales y Banderas' : 'Trivia Mode: Continents, Countries, Capitals & Flags'}
+              className={`px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all ${
+                playSubMode === 'trivia'
+                  ? 'bg-amber-400 text-slate-950 shadow-md font-black ring-1 ring-amber-300'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <Trophy className="w-3.5 h-3.5 text-slate-950" />
+              <span>{isEs ? 'Trivia' : 'Trivia'}</span>
+              {triviaScoreText && (
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-900 text-amber-300 font-mono font-bold ml-0.5">
+                  {triviaScoreText}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* The Exclusive Buttons: Politico, Relieve, Satelite, Menu Principal */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* 3 Basemap Lenses */}
           <div id="tour-lens-switcher" className="flex items-center bg-slate-950/80 p-0.5 sm:p-1 rounded-xl border border-slate-800 shadow-inner">
@@ -83,6 +127,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <span>{isEs ? 'Político' : 'Political'}</span>
             </button>
+
 
             {/* 2. Relieve */}
             <button

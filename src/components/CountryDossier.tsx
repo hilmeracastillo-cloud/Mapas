@@ -32,7 +32,7 @@ export const CountryDossier: React.FC<CountryDossierProps> = ({
 
   return (
     <aside
-      className="fixed top-14 sm:top-16 right-0 bottom-0 z-30 w-full sm:w-[350px] md:w-[380px] lg:w-[390px] bg-slate-900/95 backdrop-blur-xl border-l border-slate-700/80 shadow-2xl flex flex-col text-slate-100 transition-transform duration-300 ease-in-out overflow-hidden"
+      className="fixed top-14 sm:top-16 right-0 bottom-0 z-50 w-full sm:w-[360px] md:w-[400px] lg:w-[420px] bg-slate-900/98 backdrop-blur-2xl border-l border-slate-700/80 shadow-2xl flex flex-col text-slate-100 transition-transform duration-300 ease-in-out overflow-hidden"
       aria-label="Country Dossier"
     >
       {/* Dossier Header */}

@@ -5,6 +5,7 @@ import { PedagogicalLevel, ContinentId } from '../types/progression';
 import { CONTINENTS_DATA, OCEANS_SEAS_DATA } from '../data/continentsOceansData';
 import { getCountrySurroundingWaters } from '../data/surroundingWatersData';
 import { fetchCountriesGeoJson } from '../services/geoJsonService';
+import { TriviaFlavor } from '../types/trivia';
 
 interface LeafletMapProps {
   currentLens: LensType;
@@ -23,6 +24,9 @@ interface LeafletMapProps {
   currentLevel?: PedagogicalLevel;
   selectedContinent?: ContinentId;
   isPlayMode?: boolean;
+  isTriviaMode?: boolean;
+  triviaFlavor?: TriviaFlavor | null;
+  onTriviaMapClick?: (targetId: string, country?: CountryDossierData | null) => void;
 }
 
 export const LeafletMap: React.FC<LeafletMapProps> = ({
@@ -42,7 +46,12 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   currentLevel = 1,
   selectedContinent = 'South America',
   isPlayMode = false,
+  isTriviaMode = false,
+  triviaFlavor = null,
+  onTriviaMapClick,
 }) => {
+
+
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const baseTileLayerRef = useRef<L.TileLayer | null>(null);
@@ -87,7 +96,73 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     };
   }, []);
 
-  // Update Basemap Tiles based on 3-Lens Switcher
+  // Comprehensive normalization aliases for GeoJSON features with name variations
+  const GEO_NAME_ALIASES: Record<string, string> = {
+    'united states of america': 'us',
+    'the united states': 'us',
+    'republic of the congo': 'cg',
+    'congo': 'cg',
+    'democratic republic of the congo': 'cd',
+    'dr congo': 'cd',
+    'tanzania, united republic of': 'tz',
+    'united republic of tanzania': 'tz',
+    'russian federation': 'ru',
+    'viet nam': 'vn',
+    'iran, islamic republic of': 'ir',
+    'syrian arab republic': 'sy',
+    'lao peoples democratic republic': 'la',
+    'laos': 'la',
+    'korea, republic of': 'kr',
+    'south korea': 'kr',
+    'korea, democratic peoples republic of': 'kp',
+    'north korea': 'kp',
+    'bolivia, plurinational state of': 'bo',
+    'venezuela, bolivarian republic of': 've',
+    'moldova, republic of': 'md',
+    'czech republic': 'cz',
+    'czechia': 'cz',
+    'côte divoire': 'ci',
+    'cote d ivoire': 'ci',
+    'ivory coast': 'ci',
+    'eswatini': 'sz',
+    'swaziland': 'sz',
+    'myanmar': 'mm',
+    'burma': 'mm',
+    'timor-leste': 'tl',
+    'east timor': 'tl',
+    'brunei darussalam': 'bn',
+    'taiwan, province of china': 'tw',
+    'taiwan': 'tw',
+    'bahamas, the': 'bs',
+    'the bahamas': 'bs',
+    'gambia, the': 'gm',
+    'the gambia': 'gm',
+    'fiji': 'fj',
+    'republic of fiji': 'fj',
+    'macedonia': 'mk',
+    'north macedonia': 'mk',
+    'the former yugoslav republic of macedonia': 'mk',
+    'micronesia, federated states of': 'fm',
+    'federated states of micronesia': 'fm',
+    'cabo verde': 'cv',
+    'cape verde': 'cv',
+    'guinea-bissau': 'gw',
+    'equatorial guinea': 'gq',
+    'papua new guinea': 'pg',
+    'guinea': 'gn',
+    'somaliland': 'so',
+    'somalia': 'so',
+    'south sudan': 'ss',
+    'sudan': 'sd',
+    'dominica': 'dm',
+    'dominican republic': 'do',
+    'niger': 'ne',
+    'nigeria': 'ng',
+    'oman': 'om',
+    'romania': 'ro',
+  };
+
+  // Update Basemap Tiles based on 3-Lens Switcher & Trivia Mode
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -105,21 +180,39 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     let baseTileUrl = '';
     let overlayTileUrl: string | null = null;
     let attribution = '&copy; <a href="https://www.esri.com">Esri</a>, USGS, NOAA';
+    let subdomains: string[] | undefined = undefined;
 
-    if (currentLens === 'political') {
-      baseTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
-      overlayTileUrl = null;
-    } else if (currentLens === 'physical') {
-      baseTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}';
-      overlayTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
-    } else if (currentLens === 'satellite') {
-      baseTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-      overlayTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
+    if (isTriviaMode) {
+      // IN TRIVIA MODE: NO LABELS ALLOWED (names of countries, capitals, etc. must NOT appear on tiles at ANY zoom level)
+      // We use Esri World_Shaded_Relief and World_Imagery which have 100% ZERO labels and require 0 API keys
+      if (currentLens === 'political') {
+        // Pure shaded topography with coastlines and mountains; vector polygons provide the political sovereign borders
+        baseTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}';
+        overlayTileUrl = null;
+      } else if (currentLens === 'physical') {
+        baseTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}';
+        overlayTileUrl = null;
+      } else if (currentLens === 'satellite') {
+        baseTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+        overlayTileUrl = null;
+      }
+    } else {
+      if (currentLens === 'political') {
+        baseTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+        overlayTileUrl = null;
+      } else if (currentLens === 'physical') {
+        baseTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}';
+        overlayTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
+      } else if (currentLens === 'satellite') {
+        baseTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+        overlayTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
+      }
     }
 
     baseTileLayerRef.current = L.tileLayer(baseTileUrl, {
       maxZoom: 18,
       attribution,
+      ...(subdomains ? { subdomains } : {}),
     }).addTo(map);
 
     if (overlayTileUrl) {
@@ -129,7 +222,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         opacity: 0.85,
       }).addTo(map);
     }
-  }, [currentLens]);
+  }, [currentLens, isTriviaMode]);
 
   // Fetch Live Country GeoJSON
   useEffect(() => {
@@ -155,20 +248,77 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     };
   }, []);
 
-  // Helper: Find country in our rich dataset by ISO or name
+  // Helper: Find country in our rich dataset by ISO or name with 100% strict matching
+  // PREVENTS false positives like Oman matching Romania or Niger matching Nigeria!
   const findCountryMatch = useCallback(
     (featureProps: any): CountryDossierData | undefined => {
       if (!featureProps) return undefined;
-      const isoA2 = (featureProps.ISO_A2 || featureProps['ISO3166-1-Alpha-2'] || featureProps.iso_a2 || '').toLowerCase();
-      const isoA3 = (featureProps.ISO_A3 || featureProps['ISO3166-1-Alpha-3'] || featureProps.iso_a3 || '').toUpperCase();
-      const name = (featureProps.ADMIN || featureProps.name || featureProps.NAME || '').toLowerCase();
+      const rawIso2 = (
+        featureProps['ISO3166-1-Alpha-2'] ||
+        featureProps.ISO_A2 ||
+        featureProps.iso2 ||
+        featureProps.iso_a2 ||
+        ''
+      )
+        .trim()
+        .toLowerCase();
 
-      return countries.find((c) => {
-        if (isoA2 && c.iso2.toLowerCase() === isoA2) return true;
-        if (isoA3 && c.iso3.toUpperCase() === isoA3) return true;
-        if (name && (c.name_en.toLowerCase().includes(name) || name.includes(c.name_en.toLowerCase()))) return true;
-        return false;
-      });
+      const rawIso3 = (
+        featureProps['ISO3166-1-Alpha-3'] ||
+        featureProps.ISO_A3 ||
+        featureProps.iso3 ||
+        featureProps.iso_a3 ||
+        ''
+      )
+        .trim()
+        .toUpperCase();
+
+      const name = (
+        featureProps.name ||
+        featureProps.NAME ||
+        featureProps.ADMIN ||
+        featureProps.name_en ||
+        ''
+      )
+        .trim()
+        .toLowerCase();
+
+      // 1. Strict ISO-2 match (ignore invalid placeholders like '-99' and non-standard lengths)
+      if (rawIso2 && rawIso2 !== '-99' && rawIso2.length === 2) {
+        const match = countries.find((c) => c.iso2 && c.iso2.toLowerCase() === rawIso2);
+        if (match) return match;
+      }
+
+      // 2. Strict ISO-3 match (ignore '-99')
+      if (rawIso3 && rawIso3 !== '-99' && rawIso3.length === 3) {
+        const match = countries.find(
+          (c) => (c.iso3 && c.iso3.toUpperCase() === rawIso3) || c.id.toUpperCase() === rawIso3
+        );
+        if (match) return match;
+      }
+
+      // 3. Strict exact English or Spanish name match (never substring includes!)
+      if (name) {
+        const exactMatch = countries.find(
+          (c) =>
+            c.name_en.toLowerCase() === name ||
+            c.name_es.toLowerCase() === name ||
+            (c.id && c.id.toLowerCase() === name)
+        );
+        if (exactMatch) return exactMatch;
+      }
+
+      // 4. Normalized alias table lookup for standard geopolitical name variations
+      const cleanName = name.replace(/[^a-z0-9 ]/g, '').trim();
+      for (const [alias, targetIso] of Object.entries(GEO_NAME_ALIASES)) {
+        const cleanAlias = alias.replace(/[^a-z0-9 ]/g, '').trim();
+        if (cleanName === cleanAlias) {
+          const match = countries.find((c) => c.iso2.toLowerCase() === targetIso);
+          if (match) return match;
+        }
+      }
+
+      return undefined;
     },
     [countries]
   );
@@ -198,22 +348,36 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
             weight: 4,
             opacity: 1,
             fill: true,
-            fillColor: '#ffffff',
-            fillOpacity: 0,
+            fillColor: '#ef4444',
+            fillOpacity: isTriviaMode ? 0.35 : 0,
             className: 'poly-wrong-shake',
           };
         }
 
         if (isSelected || isHighlighted) {
-          // Línea amarilla que identifica al país seleccionado: mitad del espesor actual (2.25) sin cajas ni rectángulos
+          // Línea amarilla que identifica al país seleccionado / acertado
           return {
             color: '#fbbf24',
-            weight: 2.25,
+            weight: 2.5,
             opacity: 1,
             fill: true,
-            fillColor: '#000000',
-            fillOpacity: 0.0001, // Transparente: cero relleno blanco y máxima nitidez
+            fillColor: isTriviaMode ? '#d97706' : '#000000',
+            fillOpacity: isTriviaMode ? 0.35 : 0.0001,
             className: 'poly-neon no-focus-outline',
+          };
+        }
+
+        // En modo Trivia: cada país tiene un relleno opaco y bordes contrastados para que el mapa político
+        // muestre las fronteras nítidas y NINGÚN nombre de país pueda asomarse desde el fondo, incluso con zoom cercano
+        if (isTriviaMode) {
+          return {
+            color: '#475569',
+            weight: 1.4,
+            opacity: 0.95,
+            fill: true,
+            fillColor: '#1e293b',
+            fillOpacity: 0.8,
+            className: 'cursor-pointer hover:stroke-amber-400 transition-colors no-focus-outline',
           };
         }
 
@@ -245,12 +409,14 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         const name = country ? (currentLang === 'es' ? country.name_es : country.name_en) : (feature?.properties?.ADMIN || feature?.properties?.name || 'Country');
         const iso = country?.iso2.toLowerCase() || (feature?.properties?.ISO_A2 || '').toLowerCase();
 
-        // Tooltip
-        layer.bindTooltip(`<strong>${name}</strong>`, {
-          sticky: true,
-          direction: 'top',
-          className: 'bg-slate-900/90 text-white text-xs px-2 py-1 rounded shadow-lg border border-slate-700',
-        });
+        // Tooltip: In Trivia mode, hover tooltips are completely disabled so player knowledge is genuinely evaluated
+        if (!isTriviaMode) {
+          layer.bindTooltip(`<strong>${name}</strong>`, {
+            sticky: true,
+            direction: 'top',
+            className: 'bg-slate-900/90 text-white text-xs px-2 py-1 rounded shadow-lg border border-slate-700',
+          });
+        }
 
         // Hover effect: solo resaltar el contorno exterior sin aplicar sombreado
         layer.on({
@@ -262,8 +428,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
                 color: '#fbbf24',
                 opacity: 1,
                 fill: true,
-                fillColor: '#000000',
-                fillOpacity: 0.0001,
+                fillColor: isTriviaMode ? '#334155' : '#000000',
+                fillOpacity: isTriviaMode ? 0.85 : 0.0001,
               });
             }
           },
@@ -287,6 +453,14 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
 
             if (currentLevel === 3) {
               return; // In Level 3, countries are not presented
+            }
+            if (isTriviaMode && onTriviaMapClick) {
+              if (triviaFlavor === 'continents') {
+                onTriviaMapClick(country?.continent || '', country);
+              } else {
+                onTriviaMapClick(country?.id || iso, country);
+              }
+              return;
             }
             if (currentMode === 'quest' && onCountryMapClick) {
               onCountryMapClick(iso, name);
@@ -315,6 +489,9 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     findCountryMatch,
     onCountryMapClick,
     onSelectCountry,
+    isTriviaMode,
+    triviaFlavor,
+    onTriviaMapClick,
   ]);
 
   // Render Custom Vector Markers (Gold Star for Capitals & Semantic Badges for Landforms)
@@ -401,9 +578,14 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       return; // Do NOT render countries in Level 3!
     }
 
-    // 1. Render Capital Star (★) ONLY when a country is selected!
-    // Esto evita que el mapamundi se llene de estrellas cubriendo los países innecesariamente.
-    if (selectedCountry && selectedCountry.capital_coords) {
+    // =========================================================================
+    // TRIVIA MODE: NO TEXT BADGES ALLOWED ON THE MAP
+    // In Trivia mode, users identify locations by shape and geographical position directly.
+    // =========================================================================
+
+    // 1. Render Capital Star (★) ONLY when a country is selected in Explore/Learning modes!
+    // Never show capital pins during Trivia mode so answers are not revealed prematurely.
+    if (!isTriviaMode && selectedCountry && selectedCountry.capital_coords) {
       const capitalName = currentLang === 'es' ? selectedCountry.capital_es : selectedCountry.capital_en;
       const countryName = currentLang === 'es' ? selectedCountry.name_es : selectedCountry.name_en;
 
@@ -704,7 +886,11 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     onSelectCountry,
     onFlyToFeature,
     isPlayMode,
+    isTriviaMode,
+    triviaFlavor,
+    onTriviaMapClick,
   ]);
+
 
   // El mapa de inicio de cualquier modo de trabajo debe presentar el mapamundi completo
   useEffect(() => {

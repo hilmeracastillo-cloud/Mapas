@@ -12,14 +12,15 @@ import {
   Target,
   Sparkles,
   RotateCcw,
-  CheckCircle2
+  CheckCircle2,
+  Trophy
 } from 'lucide-react';
 
 interface ModeSelectionScreenProps {
   currentLang: Language;
   onToggleLang: () => void;
   onSelectLang: (lang: Language) => void;
-  onSelectPlay: () => void;
+  onSelectPlay: (subMode?: 'explore' | 'trivia') => void;
   onSelectLearn: () => void;
   onOpenTeachers: () => void;
   onReturnToWelcome: () => void;
@@ -34,6 +35,7 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
   onOpenTeachers,
   onReturnToWelcome,
 }) => {
+
   const isEs = currentLang === 'es';
 
   return (
@@ -150,8 +152,7 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
           
           {/* ================= OPTION 1: JUGAR / PLAY ================= */}
           <div
-            onClick={onSelectPlay}
-            className="group relative rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-emerald-500/40 hover:border-emerald-400 p-6 sm:p-7 shadow-2xl hover:shadow-emerald-500/10 transition-all flex flex-col justify-between cursor-pointer active:scale-[0.99]"
+            className="group relative rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-emerald-500/40 hover:border-emerald-400 p-6 sm:p-7 shadow-2xl hover:shadow-emerald-500/10 transition-all flex flex-col justify-between"
           >
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -159,7 +160,7 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
                   <Gamepad2 className="w-8 h-8 text-emerald-400" />
                 </div>
                 <span className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase tracking-wider">
-                  {isEs ? 'Modo Libre' : 'Free Mode'}
+                  {isEs ? 'Modo de Juego' : 'Play Mode'}
                 </span>
               </div>
 
@@ -168,44 +169,57 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
                   {isEs ? 'Jugar / Play' : 'Play / Jugar'}
                 </h2>
                 <span className="text-xs font-semibold text-emerald-400/90 block mt-0.5">
-                  {isEs ? 'Mapa Político Mundial y Países' : 'Interactive World Political Map'}
+                  {isEs ? 'Exploración Libre y Desafíos de Trivia' : 'Free Exploration & Trivia Challenges'}
                 </span>
               </div>
 
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                 {isEs
-                  ? 'Ve directamente al mapa político completo de todos los países del mundo. Haz clic en cualquier país para abrir su ficha completa en el panel lateral derecho con capital, bandera, relieve, población y PIB.'
-                  : 'Go directly to the political map of all sovereign countries. Click any country to open its detailed dossier in the right side panel with capital, flag, terrain, population, and GDP.'}
+                  ? 'Elige entre dos modalidades de juego: explora libremente el mapa mundial y abre las fichas de los 198 países, o pon a prueba tus conocimientos con la Trivia interactiva en el mapa.'
+                  : 'Choose between two game modes: freely explore the political world map with 198 complete dossiers, or test your skills with interactive map Trivia.'}
               </p>
 
               <ul className="space-y-1.5 text-xs text-slate-400 pt-1">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>{isEs ? 'Mapa político global con fronteras, nombres y soberanías' : 'Global political basemap with borders, names & sovereignties'}</span>
+                  <span>
+                    <strong className="text-slate-200">{isEs ? 'Opción Explorar:' : 'Explore Option:'}</strong>{' '}
+                    {isEs ? 'Navegación libre, capas y fichas detalladas' : 'Free navigation, layers & dossiers'}
+                  </span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>{isEs ? 'Ficha de país instantánea en panel lateral derecho' : 'Instant country dossier in right side drawer'}</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>{isEs ? 'Navegación y zoom libre sin restricciones' : 'Free unrestricted navigation & planetary zoom'}</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span>
+                    <strong className="text-amber-300">{isEs ? 'Opción Trivia:' : 'Trivia Option:'}</strong>{' '}
+                    {isEs ? 'Continentes, Países, Capitales y Banderas con conteo en vivo' : 'Continents, Countries, Capitals & Flags with live score'}
+                  </span>
                 </li>
               </ul>
             </div>
 
-            <div className="pt-6">
+            <div className="pt-6 space-y-2.5">
               <button
                 type="button"
-                onClick={onSelectPlay}
-                className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all group-hover:gap-3"
+                onClick={() => onSelectPlay('explore')}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all active:scale-95"
               >
-                <Globe2 className="w-4 h-4 text-slate-950" />
-                <span>{isEs ? 'Comenzar a Jugar' : 'Start Playing'}</span>
+                <Compass className="w-4 h-4 text-slate-950" />
+                <span>{isEs ? '1. Modo Explorar (Libre)' : '1. Explore Mode (Free)'}</span>
+                <ArrowRight className="w-4 h-4 text-slate-950" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onSelectPlay('trivia')}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 transition-all active:scale-95 border border-amber-300/50"
+              >
+                <Trophy className="w-4 h-4 text-slate-950" />
+                <span>{isEs ? '2. Modo Trivia (Desafíos)' : '2. Trivia Mode (Quiz)'}</span>
                 <ArrowRight className="w-4 h-4 text-slate-950" />
               </button>
             </div>
           </div>
+
 
           {/* ================= OPTION 2: APRENDER / LEARN ================= */}
           <div

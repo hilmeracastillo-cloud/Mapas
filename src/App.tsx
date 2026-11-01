@@ -34,6 +34,9 @@ import { Level2LandformsModal } from './components/Level2LandformsModal';
 import { Level3ContinentsOceansModal } from './components/Level3ContinentsOceansModal';
 import { Level4ContinentCountriesView } from './components/Level4ContinentCountriesView';
 import { LevelEvaluationEngine } from './components/LevelEvaluationEngine';
+import { PlayTriviaPanel } from './components/PlayTriviaPanel';
+import { PlaySubMode, TriviaFlavor, TriviaQuestion, TriviaStats } from './types/trivia';
+import { generateTriviaQuestion } from './utils/triviaGenerator';
 import {
   PedagogicalLevel,
   PedagogicalProgressState,
@@ -55,6 +58,8 @@ const STORAGE_KEY_LANG = 'geomaster_lang_v1';
 const STORAGE_KEY_ONBOARDING = 'geomaster_seen_welcome_v1';
 const STORAGE_KEY_INTRO = 'geomaster_seen_intro_v2';
 const STORAGE_KEY_PROGRESSION = 'geomaster_pedagogical_progress_v2';
+const STORAGE_KEY_TRIVIA_STATS = 'geomaster_trivia_stats_v2';
+
 
 export type AppScreen = 'welcome' | 'mode_select' | 'menu' | 'country_map';
 
@@ -73,6 +78,81 @@ export default function App() {
   // 4. 'country_map': Full-screen sovereign country map (when playing or entering Module 4)
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('welcome');
   const [isPlayMode, setIsPlayMode] = useState<boolean>(false);
+
+  // Play SubMode: 'explore' (free map & dossiers) vs 'trivia' (quiz with live score)
+  const [playSubMode, setPlaySubMode] = useState<PlaySubMode>('explore');
+  const [triviaFlavor, setTriviaFlavor] = useState<TriviaFlavor | null>(null);
+  const [triviaAskedIds, setTriviaAskedIds] = useState<Record<TriviaFlavor, string[]>>({
+    continents: [],
+    countries: [],
+    capitals: [],
+    flags: [],
+  });
+  const [triviaStats, setTriviaStats] = useState<TriviaStats>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_TRIVIA_STATS);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          return {
+            totalScore: typeof parsed.totalScore === 'number' && !isNaN(parsed.totalScore) ? parsed.totalScore : 0,
+            totalAnswered: typeof parsed.totalAnswered === 'number' && !isNaN(parsed.totalAnswered) ? parsed.totalAnswered : 0,
+            perfectFirstAttempts: typeof parsed.perfectFirstAttempts === 'number' && !isNaN(parsed.perfectFirstAttempts) ? parsed.perfectFirstAttempts : 0,
+            currentStreak: typeof parsed.currentStreak === 'number' && !isNaN(parsed.currentStreak) ? parsed.currentStreak : 0,
+            bestStreak: typeof parsed.bestStreak === 'number' && !isNaN(parsed.bestStreak) ? parsed.bestStreak : 0,
+            byFlavor: {
+              continents: {
+                answered: parsed.byFlavor?.continents?.answered || 0,
+                score: parsed.byFlavor?.continents?.score || 0,
+                perfectCount: parsed.byFlavor?.continents?.perfectCount || 0,
+              },
+              countries: {
+                answered: parsed.byFlavor?.countries?.answered || 0,
+                score: parsed.byFlavor?.countries?.score || 0,
+                perfectCount: parsed.byFlavor?.countries?.perfectCount || 0,
+              },
+              capitals: {
+                answered: parsed.byFlavor?.capitals?.answered || 0,
+                score: parsed.byFlavor?.capitals?.score || 0,
+                perfectCount: parsed.byFlavor?.capitals?.perfectCount || 0,
+              },
+              flags: {
+                answered: parsed.byFlavor?.flags?.answered || 0,
+                score: parsed.byFlavor?.flags?.score || 0,
+                perfectCount: parsed.byFlavor?.flags?.perfectCount || 0,
+              },
+            },
+          };
+        }
+      }
+    } catch {}
+    return {
+      totalScore: 0,
+      totalAnswered: 0,
+      perfectFirstAttempts: 0,
+      currentStreak: 0,
+      bestStreak: 0,
+      byFlavor: {
+        continents: { answered: 0, score: 0, perfectCount: 0 },
+        countries: { answered: 0, score: 0, perfectCount: 0 },
+        capitals: { answered: 0, score: 0, perfectCount: 0 },
+        flags: { answered: 0, score: 0, perfectCount: 0 },
+      },
+    };
+  });
+
+  const [triviaQuestion, setTriviaQuestion] = useState<TriviaQuestion | null>(null);
+  const [triviaCurrentAttempt, setTriviaCurrentAttempt] = useState<number>(1);
+  const [triviaLastWrongGuessName, setTriviaLastWrongGuessName] = useState<string | null>(null);
+  const [triviaIsAnswered, setTriviaIsAnswered] = useState<boolean>(false);
+  const [triviaIsCorrect, setTriviaIsCorrect] = useState<boolean | null>(null);
+  const [triviaEarnedPoints, setTriviaEarnedPoints] = useState<number>(0);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_TRIVIA_STATS, JSON.stringify(triviaStats));
+  }, [triviaStats]);
+
+
 
   // For Teachers / Para Profesores Modal (Bilingual Curriculum, Grading & Bloom)
   const [isTeachersModalOpen, setIsTeachersModalOpen] = useState<boolean>(false);
@@ -668,20 +748,236 @@ export default function App() {
     setCurrentScreen('mode_select');
   };
 
-  // Option 1: "Jugar / Play" -> directly opens the political map of all countries of the world presented in full
-  const handleSelectPlayMode = () => {
+  // Option 1: "Jugar / Play" (with 'explore' or 'trivia' submode)
+  const handleSelectPlayMode = (subMode: 'explore' | 'trivia' = 'explore') => {
     setIsPlayMode(true);
+    setPlaySubMode(subMode);
     setCurrentLens('political');
     setCurrentMode('explore');
     setSelectedCountry(null);
     setHighlightedIso2(null);
+    setShakeIso2(null);
     setActiveFeatureBadge(null);
     setFlyToCoords([20, 0]);
     setFlyToZoom(2);
     setProgression((prev) => ({ ...prev, activeLevel: 4 }));
-    setIsPlayGuideOpen(true);
+    setIsPlayGuideOpen(subMode === 'explore');
     setCurrentScreen('country_map');
+
+    if (subMode === 'trivia') {
+      // Show Category Selection Menu first without questions!
+      setTriviaFlavor(null);
+      setTriviaQuestion(null);
+      setTriviaCurrentAttempt(1);
+      setTriviaLastWrongGuessName(null);
+      setTriviaIsAnswered(false);
+      setTriviaIsCorrect(null);
+      setTriviaEarnedPoints(0);
+    }
   };
+
+  // Select a Trivia Category (Continentes, Países, Capitales, Banderas)
+  const handleTriviaSelectFlavor = (flavor: TriviaFlavor) => {
+    setTriviaFlavor(flavor);
+    const asked = triviaAskedIds[flavor] || [];
+    const q = generateTriviaQuestion(flavor, countries, asked);
+    setTriviaAskedIds((prev) => ({
+      ...prev,
+      [flavor]: [...(prev[flavor] || []), q.id],
+    }));
+    setTriviaQuestion(q);
+    setTriviaCurrentAttempt(1);
+    setTriviaLastWrongGuessName(null);
+    setTriviaIsAnswered(false);
+    setTriviaIsCorrect(null);
+    setTriviaEarnedPoints(0);
+    setHighlightedIso2(null);
+    setShakeIso2(null);
+    setSelectedCountry(null);
+    setFlyToCoords([20, 0]);
+    setFlyToZoom(2);
+  };
+
+  // Return to the Category Selection Menu
+  const handleTriviaReturnToCategories = () => {
+    setTriviaFlavor(null);
+    setTriviaQuestion(null);
+    setTriviaCurrentAttempt(1);
+    setTriviaLastWrongGuessName(null);
+    setTriviaIsAnswered(false);
+    setTriviaIsCorrect(null);
+    setTriviaEarnedPoints(0);
+    setHighlightedIso2(null);
+    setShakeIso2(null);
+    setSelectedCountry(null);
+    setFlyToCoords([20, 0]);
+    setFlyToZoom(2);
+  };
+
+  // Next Trivia Question in current session
+  const handleTriviaNextQuestion = () => {
+    if (!triviaFlavor) return;
+    const asked = triviaAskedIds[triviaFlavor] || [];
+    const newQ = generateTriviaQuestion(triviaFlavor, countries, asked);
+    setTriviaAskedIds((prev) => ({
+      ...prev,
+      [triviaFlavor!]: [...(prev[triviaFlavor!] || []), newQ.id],
+    }));
+    setTriviaQuestion(newQ);
+    setTriviaCurrentAttempt(1);
+    setTriviaLastWrongGuessName(null);
+    setTriviaIsAnswered(false);
+    setTriviaIsCorrect(null);
+    setTriviaEarnedPoints(0);
+    setHighlightedIso2(null);
+    setShakeIso2(null);
+    setSelectedCountry(null);
+    if (triviaFlavor === 'continents') {
+      setFlyToCoords([20, 0]);
+      setFlyToZoom(2);
+    }
+  };
+
+  // Reset Trivia Stats and question history
+  const handleTriviaResetStats = () => {
+    setTriviaStats({
+      totalScore: 0,
+      totalAnswered: 0,
+      perfectFirstAttempts: 0,
+      currentStreak: 0,
+      bestStreak: 0,
+      byFlavor: {
+        continents: { answered: 0, score: 0, perfectCount: 0 },
+        countries: { answered: 0, score: 0, perfectCount: 0 },
+        capitals: { answered: 0, score: 0, perfectCount: 0 },
+        flags: { answered: 0, score: 0, perfectCount: 0 },
+      },
+    });
+    setTriviaAskedIds({
+      continents: [],
+      countries: [],
+      capitals: [],
+      flags: [],
+    });
+  };
+
+  // Handle Trivia Answer on Map Click (no written multiple-choice alternatives)
+  const handleTriviaAnswer = (clickedId: string, clickedCountry?: CountryDossierData | null) => {
+    if (!triviaQuestion || triviaIsAnswered || !triviaFlavor) return;
+
+    let isCorrect = false;
+
+    if (triviaFlavor === 'continents') {
+      const targetCont = triviaQuestion.targetId.toLowerCase();
+      const clickedLower = clickedId.toLowerCase();
+      const countryCont = clickedCountry?.continent?.toLowerCase() || '';
+      if (clickedLower === targetCont || countryCont === targetCont) {
+        isCorrect = true;
+      }
+    } else {
+      const targetCountryId = triviaQuestion.targetId.toLowerCase();
+      const targetIso2 = triviaQuestion.targetIso2?.toLowerCase() || '';
+      const cId = clickedId.toLowerCase();
+      const cCountryIso = clickedCountry?.iso2?.toLowerCase() || '';
+      const cCountryId = clickedCountry?.id?.toLowerCase() || '';
+
+      if (
+        cId === targetCountryId ||
+        (targetIso2 && cId === targetIso2) ||
+        (targetIso2 && cCountryIso === targetIso2) ||
+        cCountryId === targetCountryId
+      ) {
+        isCorrect = true;
+      }
+    }
+
+    if (isCorrect) {
+      // Scoring rules: 1st attempt = 1.0 pt, 2nd attempt = 0.5 pt, 3rd attempt = 0.25 pt
+      let pts = 1.0;
+      if (triviaCurrentAttempt === 2) pts = 0.5;
+      else if (triviaCurrentAttempt === 3) pts = 0.25;
+      else if (triviaCurrentAttempt >= 4) pts = 0;
+
+      const currentFlavorKey = triviaFlavor;
+      setTriviaStats((prev) => {
+        const nextStreak = prev.currentStreak + 1;
+        const prevFl = prev.byFlavor[currentFlavorKey] || { answered: 0, score: 0, perfectCount: 0 };
+        return {
+          totalScore: prev.totalScore + pts,
+          totalAnswered: prev.totalAnswered + 1,
+          perfectFirstAttempts: prev.perfectFirstAttempts + (triviaCurrentAttempt === 1 ? 1 : 0),
+          currentStreak: nextStreak,
+          bestStreak: Math.max(prev.bestStreak, nextStreak),
+          byFlavor: {
+            ...prev.byFlavor,
+            [currentFlavorKey]: {
+              answered: prevFl.answered + 1,
+              score: prevFl.score + pts,
+              perfectCount: prevFl.perfectCount + (triviaCurrentAttempt === 1 ? 1 : 0),
+            },
+          },
+        };
+      });
+
+      setTriviaIsAnswered(true);
+      setTriviaIsCorrect(true);
+      setTriviaEarnedPoints(pts);
+      setTriviaLastWrongGuessName(null);
+
+      if (triviaQuestion.targetIso2) {
+        setHighlightedIso2(triviaQuestion.targetIso2);
+      }
+    } else {
+      // Incorrect guess on this attempt
+      const wrongName = clickedCountry
+        ? currentLang === 'es'
+          ? clickedCountry.name_es
+          : clickedCountry.name_en
+        : clickedId;
+      setTriviaLastWrongGuessName(wrongName);
+
+      if (clickedCountry?.iso2) {
+        setShakeIso2(clickedCountry.iso2);
+        setTimeout(() => setShakeIso2(null), 1000);
+      }
+
+      if (triviaCurrentAttempt < 4) {
+        // Increment attempt: user gets progressive hint and can try again!
+        setTriviaCurrentAttempt((prev) => prev + 1);
+      } else {
+        // 4th attempt failed: 0 points and reveal answer on map!
+        const currentFlavorKey = triviaFlavor;
+        setTriviaStats((prev) => {
+          const prevFl = prev.byFlavor[currentFlavorKey] || { answered: 0, score: 0, perfectCount: 0 };
+          return {
+            ...prev,
+            totalAnswered: prev.totalAnswered + 1,
+            currentStreak: 0,
+            byFlavor: {
+              ...prev.byFlavor,
+              [currentFlavorKey]: {
+                ...prevFl,
+                answered: prevFl.answered + 1,
+              },
+            },
+          };
+        });
+
+        setTriviaIsAnswered(true);
+        setTriviaIsCorrect(false);
+        setTriviaEarnedPoints(0);
+
+        // Fly to correct answer and highlight it
+        setFlyToCoords(triviaQuestion.targetCoords);
+        setFlyToZoom(triviaQuestion.targetZoom);
+        if (triviaQuestion.targetIso2) {
+          setHighlightedIso2(triviaQuestion.targetIso2);
+        }
+      }
+    }
+  };
+
+
 
   // Option 2: "Aprender / Learn" -> opens the Main Content Menu (ModulesMenuScreen)
   const handleSelectLearnMode = () => {
@@ -756,6 +1052,34 @@ export default function App() {
           {/* Top Navigation Bar with Modules Menu button */}
           <Navbar
             isPlayMode={isPlayMode}
+            playSubMode={playSubMode}
+            onChangePlaySubMode={(sub) => {
+              setPlaySubMode(sub);
+              setIsDossierOpen(false);
+              setSelectedCountry(null);
+              setHighlightedIso2(null);
+              setShakeIso2(null);
+              if (sub === 'trivia') {
+                setTriviaFlavor(null);
+                setTriviaQuestion(null);
+                setTriviaCurrentAttempt(1);
+                setTriviaLastWrongGuessName(null);
+                setTriviaIsAnswered(false);
+                setTriviaIsCorrect(null);
+                setTriviaEarnedPoints(0);
+              }
+            }}
+            triviaScoreText={
+              (triviaStats?.totalAnswered || 0) > 0
+                ? `${
+                    (triviaStats?.totalScore || 0) % 1 === 0
+                      ? (triviaStats?.totalScore || 0)
+                      : (triviaStats?.totalScore || 0).toFixed(2)
+                  } pts`
+                : undefined
+            }
+
+
             currentMode={currentMode}
             onChangeMode={(mode) => {
               setCurrentMode(mode);
@@ -812,7 +1136,13 @@ export default function App() {
               currentLang={currentLang}
               countries={countries}
               selectedCountry={selectedCountry}
-              onSelectCountry={handleSelectCountry}
+              onSelectCountry={(c) => {
+                if (isPlayMode && playSubMode === 'trivia') {
+                  if (c) handleTriviaAnswer(c.id, c);
+                } else {
+                  handleSelectCountry(c);
+                }
+              }}
               onCountryMapClick={handleCountryMapClick}
               onFlyToFeature={handleFlyToFeature}
               flyToCoords={flyToCoords}
@@ -823,7 +1153,11 @@ export default function App() {
               currentLevel={progression.activeLevel}
               selectedContinent={progression.selectedContinentForL4}
               isPlayMode={isPlayMode}
+              isTriviaMode={isPlayMode && playSubMode === 'trivia'}
+              triviaFlavor={triviaFlavor}
+              onTriviaMapClick={(targetId, country) => handleTriviaAnswer(targetId, country)}
             />
+
 
             {/* Level 4: Interactive Continent Countries Hub & Progress Tracker */}
             {progression.activeLevel === 4 && isLevel4HubOpen && (
@@ -899,8 +1233,46 @@ export default function App() {
           />
         )}
 
-        {/* Country Dossier 440px Drawer (in explore / learn mode) */}
-        {currentMode !== 'quest' && (
+        {/* Play Mode - Interactive Trivia Panel */}
+        {isPlayMode && playSubMode === 'trivia' && (
+          <PlayTriviaPanel
+            currentLang={currentLang}
+            currentFlavor={triviaFlavor}
+            onSelectFlavor={handleTriviaSelectFlavor}
+            onReturnToCategories={handleTriviaReturnToCategories}
+            question={triviaQuestion}
+            stats={triviaStats}
+            currentAttempt={triviaCurrentAttempt}
+            lastWrongGuessName={triviaLastWrongGuessName}
+            isAnswered={triviaIsAnswered}
+            isCorrect={triviaIsCorrect}
+            earnedPoints={triviaEarnedPoints}
+            onNextQuestion={handleTriviaNextQuestion}
+            onResetStats={handleTriviaResetStats}
+            isBehind={isDossierOpen}
+            onCloseToExplore={() => {
+              setPlaySubMode('explore');
+              setHighlightedIso2(null);
+              setShakeIso2(null);
+            }}
+            onViewCountryDossier={(targetId) => {
+              const c = countries.find(
+                (item) =>
+                  item.id === targetId ||
+                  item.iso2.toLowerCase() === targetId.toLowerCase() ||
+                  (item.continent && item.continent.toLowerCase() === targetId.toLowerCase())
+              );
+              if (c) {
+                setSelectedCountry(c);
+                setIsDossierOpen(true);
+              }
+            }}
+          />
+        )}
+
+
+        {/* Country Dossier 440px Drawer (in explore / learn mode, or when requested) */}
+        {currentMode !== 'quest' && (!isPlayMode || playSubMode !== 'trivia' || isDossierOpen) && (
           <CountryDossier
             country={selectedCountry}
             isOpen={isDossierOpen}
@@ -915,6 +1287,7 @@ export default function App() {
             onChangeLens={(lens) => setCurrentLens(lens)}
           />
         )}
+
 
         {/* Floating Real-World Satellite Lesson Banner */}
         {activeSatelliteLessonBanner && (
