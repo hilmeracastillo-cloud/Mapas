@@ -1634,5 +1634,341 @@ export const ALL_AMERICAS_ADDITIONAL_COUNTRIES: CountryDossierData[] = [
       es: '¡Mount Gay Rum en Barbados está documentada históricamente como la marca y destilería de ron más antigua del mundo, operando desde 1703!'
     },
     teks_alignment: ['TEKS 5.6A: Coral limestone terrace island geology', 'TEKS 6.5A: Caribbean sugar plantation history and modern service economy']
+  },
+
+  // =========================================================================
+  // ANTIGUA AND BARBUDA (North America / Caribbean)
+  // =========================================================================
+  {
+    id: 'ATG',
+    iso2: 'ag',
+    iso3: 'ATG',
+    name_en: 'Antigua and Barbuda',
+    name_es: 'Antigua y Barbuda',
+    continent: 'North America',
+    continent_es: 'América del Norte',
+    capital_en: 'St. John’s',
+    capital_es: 'Saint John',
+    capital_coords: [17.1175, -61.8456],
+    center_coords: [17.0608, -61.7964],
+    zoom_level: 9,
+    population: '94,000',
+    area_sqkm: '442 km²',
+    gdp_billion: 1.8,
+    main_exports: {
+      en: ['Passenger & Cargo Ships ($120M)', 'Petroleum re-exports ($45M)', 'Beer & Beverages ($8M)'],
+      es: ['Embarcaciones y buques ($120M)', 'Petróleo reexportado ($45M)', 'Bebidas ($8M)'],
+      total_val_billion: 0.18,
+    },
+    main_imports: {
+      en: ['Refined Petroleum ($210M)', 'Passenger Ships ($140M)', 'Cars ($45M)', 'Meat ($35M)'],
+      es: ['Petróleo refinado ($210M)', 'Buques y yates ($140M)', 'Vehículos ($45M)', 'Carne ($35M)'],
+      total_val_billion: 0.72,
+    },
+    natural_wealth: {
+      en: ['365 white and pink sand beaches ("one for every day of the year")', 'Barbuda Frigatebird Sanctuary (largest colony in the Caribbean)', 'Historic English Harbour natural hurricane haven'],
+      es: ['365 playas de arena blanca y rosada ("una para cada día del año")', 'Santuario de fragatas en Barbuda (el mayor del Caribe)', 'English Harbour, histórico puerto natural protegido'],
+    },
+    physical_geography_summary: {
+      en: 'Comprises two major inhabited islands in the Leeward Islands: low-lying limestone and volcanic hills in Antigua and a flat coral atoll island in Barbuda.',
+      es: 'Formado por dos islas principales en las islas de Sotavento: colinas volcánicas y calizas en Antigua y un atolón plano de coral en Barbuda.'
+    },
+    landforms: [
+      {
+        id: 'ag-peak-obama',
+        type: 'peak',
+        name_en: 'Mount Obama (Boggy Peak)',
+        name_es: 'Monte Obama (Pico Boggy)',
+        coords: [17.04, -61.85],
+        elevation_m: 402,
+        description_en: 'Highest mountain peak in Antigua and Barbuda, situated in southwestern Antigua.',
+        description_es: 'Punto más alto de Antigua y Barbuda (402m), en el suroeste de Antigua.'
+      }
+    ],
+    interesting_fact: {
+      en: 'Antigua famously boasts 365 distinct beaches—one for every single day of the year!',
+      es: '¡Antigua es famosa en todo el mundo por contar con 365 playas de arena fina, exactamente una para cada día del año!'
+    },
+    teks_alignment: ['TEKS 5.6A: Coral limestone island formations in the Caribbean', 'TEKS 6.5A: Tourism service economics in small island developing states']
+  },
+
+  // =========================================================================
+  // DOMINICA (North America / Caribbean)
+  // =========================================================================
+  {
+    id: 'DMA',
+    iso2: 'dm',
+    iso3: 'DMA',
+    name_en: 'Dominica',
+    name_es: 'Dominica',
+    continent: 'North America',
+    continent_es: 'América del Norte',
+    capital_en: 'Roseau',
+    capital_es: 'Roseau',
+    capital_coords: [15.3017, -61.3881],
+    center_coords: [15.4150, -61.3710],
+    zoom_level: 9,
+    population: '73,000',
+    area_sqkm: '751 km²',
+    gdp_billion: 0.65,
+    main_exports: {
+      en: ['Medical Equipment ($18M)', 'Soap ($8M)', 'Bananas & Tropical Fruits ($6M)'],
+      es: ['Equipos médicos ($18M)', 'Jabones de aceite de coco ($8M)', 'Banano y frutas tropicales ($6M)'],
+      total_val_billion: 0.045,
+    },
+    main_imports: {
+      en: ['Refined Petroleum ($75M)', 'Cars & Trucks ($22M)', 'Poultry Meat ($18M)', 'Cements ($12M)'],
+      es: ['Petróleo refinado ($75M)', 'Vehículos ($22M)', 'Carne de ave ($18M)', 'Cemento ($12M)'],
+      total_val_billion: 0.38,
+    },
+    natural_wealth: {
+      en: ['"The Nature Island of the Caribbean" (over 60% virgin volcanic rainforest cover)', 'Boiling Lake (second-largest actively boiling thermal lake in the world)', 'Geothermal energy potential from Morne Trois Pitons active volcanoes'],
+      es: ['"La Isla de la Naturaleza del Caribe" (>60% de selva virgen)', 'Lago Hirviente (el segundo lago termal hirviente más grande del mundo)', 'Energía geotérmica en Morne Trois Pitons'],
+    },
+    physical_geography_summary: {
+      en: 'The most rugged mountainous island in the Caribbean, dominated by dormant stratovolcanoes, boiling sulfur springs, and 365 cascading rivers.',
+      es: 'La isla más montañosa y escarpada del Caribe, dominada por conos volcánicos cubiertos de selva nubosa, fumarolas activas y 365 ríos de montaña.'
+    },
+    landforms: [
+      {
+        id: 'dm-lake-boiling',
+        type: 'lake',
+        name_en: 'Boiling Lake (Valley of Desolation)',
+        name_es: 'Lago Hirviente (Valle de la Desolación)',
+        coords: [15.319, -61.296],
+        elevation_m: 800,
+        description_en: 'Flooded volcanic fumarole and the second-largest boiling lake in the world, shrouded in sulfur steam.',
+        description_es: 'Fumarola volcánica inundada y segundo lago hirviente más grande del mundo, con aguas en constante ebullición.'
+      }
+    ],
+    interesting_fact: {
+      en: 'Dominica is the only island in the eastern Caribbean that still retains its pre-Columbian indigenous population, living in the sovereign Kalinago Territory.',
+      es: 'Dominica es la única isla del Caribe oriental que aún conserva su población indígena originaria viviendo en su propio territorio soberano (Territorio Kalinago).'
+    },
+    teks_alignment: ['TEKS 5.6A: Active volcanic arc geomorphology in the Lesser Antilles', 'TEKS 6.4B: Geothermal and hydrothermal energy in island arcs']
+  },
+
+  // =========================================================================
+  // SAINT LUCIA (North America / Caribbean)
+  // =========================================================================
+  {
+    id: 'LCA',
+    iso2: 'lc',
+    iso3: 'LCA',
+    name_en: 'Saint Lucia',
+    name_es: 'Santa Lucía',
+    continent: 'North America',
+    continent_es: 'América del Norte',
+    capital_en: 'Castries',
+    capital_es: 'Castries',
+    capital_coords: [14.0101, -60.9875],
+    center_coords: [13.9094, -60.9789],
+    zoom_level: 9,
+    population: '180,000',
+    area_sqkm: '616 km²',
+    gdp_billion: 2.3,
+    main_exports: {
+      en: ['Beer & Beverages ($25M)', 'Bananas ($15M)', 'Scrap Metal ($8M)', 'Refined Petroleum re-exports'],
+      es: ['Cerveza y bebidas ($25M)', 'Bananos ($15M)', 'Chatarra ($8M)', 'Petróleo reexportado'],
+      total_val_billion: 0.12,
+    },
+    main_imports: {
+      en: ['Refined Petroleum ($380M)', 'Crude Petroleum ($180M)', 'Cars ($45M)', 'Meat ($38M)'],
+      es: ['Petróleo refinado ($380M)', 'Petróleo crudo ($180M)', 'Vehículos ($45M)', 'Carne ($38M)'],
+      total_val_billion: 0.88,
+    },
+    natural_wealth: {
+      en: ['The iconic Pitons (Gros Piton and Petit Piton UNESCO World Heritage volcanic plugs)', 'Qualibou caldera "Drive-in Volcano" with bubbling sulfur mud springs', 'Rich rainforest watershed and banana valleys'],
+      es: ['Los icónicos Pitones (Gros Piton y Petit Piton, agujas volcánicas gemelas patrimonio de la UNESCO)', 'Volcán Qualibou con manantiales de azufre', 'Valles agrícolas para banano y cacao'],
+    },
+    physical_geography_summary: {
+      en: 'A volcanic island in the Windward Islands dominated by dramatic twin volcanic spire plugs (the Pitons) rising directly out of the Caribbean Sea.',
+      es: 'Isla volcánica en las islas de Barlovento, célebre por sus dos impresionantes conos volcánicos gemelos que emergen verticalmente del mar Caribe.'
+    },
+    landforms: [
+      {
+        id: 'lc-peak-pitons',
+        type: 'volcano',
+        name_en: 'The Pitons (Gros Piton & Petit Piton)',
+        name_es: 'Los Pitones (Gros Piton y Petit Piton)',
+        coords: [13.81, -61.066],
+        elevation_m: 798,
+        description_en: 'UNESCO twin volcanic spire needles rising nearly 800 meters vertically out of the Caribbean Sea.',
+        description_es: 'Agujas volcánicas gemelas que se elevan casi 800 metros verticales directo sobre las aguas del mar Caribe.'
+      }
+    ],
+    interesting_fact: {
+      en: 'Saint Lucia holds the world record for the highest number of Nobel Prize laureates per capita: two Nobel laureates (Sir Arthur Lewis in Economics and Derek Walcott in Literature) from a population of under 180,000.',
+      es: '¡Santa Lucía tiene el récord mundial de mayor número de premios Nobel per cápita del planeta (Sir Arthur Lewis en Economía y Derek Walcott en Literatura) para un país de menos de 180,000 habitantes!'
+    },
+    teks_alignment: ['TEKS 5.6A: Volcanic plug erosion and caldera geomorphology', 'TEKS 6.5A: Tourism driving national GDP in small island economies']
+  },
+
+  // =========================================================================
+  // GRENADA (North America / Caribbean)
+  // =========================================================================
+  {
+    id: 'GRD',
+    iso2: 'gd',
+    iso3: 'GRD',
+    name_en: 'Grenada',
+    name_es: 'Granada',
+    continent: 'North America',
+    continent_es: 'América del Norte',
+    capital_en: 'St. George’s',
+    capital_es: 'Saint George',
+    capital_coords: [12.0561, -61.7488],
+    center_coords: [12.1165, -61.6790],
+    zoom_level: 9,
+    population: '125,000',
+    area_sqkm: '344 km²',
+    gdp_billion: 1.25,
+    main_exports: {
+      en: ['Nutmeg & Mace ($24M)', 'Cocoa Beans ($8M)', 'Fish ($6M)', 'Fruits & Spices ($5M)'],
+      es: ['Nuez moscada y macis ($24M)', 'Granos de cacao orgánico ($8M)', 'Pescado fresco ($6M)', 'Especias y canela ($5M)'],
+      total_val_billion: 0.055,
+    },
+    main_imports: {
+      en: ['Refined Petroleum ($140M)', 'Poultry Meat ($32M)', 'Cars & Vehicles ($25M)', 'Cements ($18M)'],
+      es: ['Petróleo refinado ($140M)', 'Carne de ave ($32M)', 'Automóviles ($25M)', 'Cemento ($18M)'],
+      total_val_billion: 0.52,
+    },
+    natural_wealth: {
+      en: ['"The Spice Isle" (world’s second largest producer of nutmeg and mace)', 'Kick ’em Jenny active submarine volcano north of Grenada', 'Grand Etang crater lake in rainforest national park', 'Grand Anse world-renowned beach'],
+      es: ['"La Isla de las Especias" (segundo productor mundial de nuez moscada)', 'Volcán submarino activo Kick ’em Jenny al norte de la isla', 'Lago de cráter Grand Etang en la selva', 'Playa de Grand Anse'],
+    },
+    physical_geography_summary: {
+      en: 'A volcanic island in the southern Grenadines with a central mountainous ridge cloaked in rainforest, crater lakes, and cascading waterfalls.',
+      es: 'Isla volcánica en el sur de las Granadinas con cordilleras cubiertas de selva tropical, lagos de cráter y cascadas.'
+    },
+    landforms: [
+      {
+        id: 'gd-volcano-kickemjenny',
+        type: 'volcano',
+        name_en: 'Kick ’em Jenny Submarine Volcano',
+        name_es: 'Volcán Submarino Kick ’em Jenny',
+        coords: [12.3, -61.64],
+        elevation_m: -180,
+        description_en: 'Active submarine volcano on the Caribbean seafloor 8 km north of Grenada.',
+        description_es: 'Volcán submarino activo en el fondo del mar Caribe a 8 km al norte de Granada.'
+      }
+    ],
+    interesting_fact: {
+      en: 'Grenada produces roughly 20% of the entire world’s supply of nutmeg and is so proud of this spice that a nutmeg fruit is displayed directly on the national flag!',
+      es: 'Granada produce cerca del 20% de la nuez moscada del mundo y está tan orgullosa de este fruto que una nuez moscada aparece representada en su bandera nacional.'
+    },
+    teks_alignment: ['TEKS 5.6A: Submarine volcanism in the Lesser Antilles arc', 'TEKS 6.6B: Traditional spice cultivation and global agricultural trade']
+  },
+
+  // =========================================================================
+  // SAINT VINCENT AND THE GRENADINES (North America / Caribbean)
+  // =========================================================================
+  {
+    id: 'VCT',
+    iso2: 'vc',
+    iso3: 'VCT',
+    name_en: 'Saint Vincent and the Grenadines',
+    name_es: 'San Vicente y las Granadinas',
+    continent: 'North America',
+    continent_es: 'América del Norte',
+    capital_en: 'Kingstown',
+    capital_es: 'Kingstown',
+    capital_coords: [13.1600, -61.2248],
+    center_coords: [13.2528, -61.1971],
+    zoom_level: 9,
+    population: '104,000',
+    area_sqkm: '389 km²',
+    gdp_billion: 1.05,
+    main_exports: {
+      en: ['Passenger & Cargo Ships ($45M)', 'Wheat Flour ($18M)', 'Bananas & Root Crops ($8M)'],
+      es: ['Buques mercantes ($45M)', 'Harina de trigo procesada ($18M)', 'Banano y tubérculos ($8M)'],
+      total_val_billion: 0.08,
+    },
+    main_imports: {
+      en: ['Passenger & Cargo Ships ($120M)', 'Refined Petroleum ($95M)', 'Poultry Meat ($25M)', 'Cars ($18M)'],
+      es: ['Buques mercantes ($120M)', 'Petróleo refinado ($95M)', 'Carne de ave ($25M)', 'Automóviles ($18M)'],
+      total_val_billion: 0.44,
+    },
+    natural_wealth: {
+      en: ['La Soufrière active stratovolcano (erupted in April 2021)', 'Tobago Cays marine national park (coral reef sanctuary for green sea turtles)', 'Fertile volcanic soils for arrowroot and bananas'],
+      es: ['Estratovolcán activo La Soufrière (erupcionó en abril de 2021)', 'Parque Marino de los Cayos de Tobago (arrecifes y tortugas marinas)', 'Suelos volcánicos para arrurruz y banano'],
+    },
+    physical_geography_summary: {
+      en: 'Consists of the mountainous volcanic island of Saint Vincent and a chain of 32 smaller idyllic coral islands and cays known as the Grenadines.',
+      es: 'Formado por la isla montañosa volcánica de San Vicente y una cadena de 32 pequeñas islas coralinas y cayos paradisíacos conocidos como las Granadinas.'
+    },
+    landforms: [
+      {
+        id: 'vc-volcano-soufriere',
+        type: 'volcano',
+        name_en: 'La Soufrière Volcano',
+        name_es: 'Volcán La Soufrière',
+        coords: [13.33, -61.18],
+        elevation_m: 1234,
+        description_en: 'Active stratovolcano forming the northern third of Saint Vincent, which famously erupted in April 2021.',
+        description_es: 'Estratovolcán activo que ocupa el tercio norte de la isla de San Vicente y erupcionó en 2021.'
+      }
+    ],
+    interesting_fact: {
+      en: 'The Tobago Cays in the Grenadines were the primary filming location for the blockbuster film "Pirates of the Caribbean: The Curse of the Black Pearl".',
+      es: 'Los Cayos de Tobago en las Granadinas fueron el escenario natural principal donde se filmaron escenas clave de la película "Piratas del Caribe".'
+    },
+    teks_alignment: ['TEKS 5.6A: Volcanic hazards and explosive pyroclastic eruptions in the Caribbean', 'TEKS 6.4A: Marine protected areas and coral reef conservation']
+  },
+
+  // =========================================================================
+  // SAINT KITTS AND NEVIS (North America / Caribbean)
+  // =========================================================================
+  {
+    id: 'KNA',
+    iso2: 'kn',
+    iso3: 'KNA',
+    name_en: 'Saint Kitts and Nevis',
+    name_es: 'San Cristóbal y Nieves',
+    continent: 'North America',
+    continent_es: 'América del Norte',
+    capital_en: 'Basseterre',
+    capital_es: 'Basseterre',
+    capital_coords: [17.3026, -62.7177],
+    center_coords: [17.3578, -62.7830],
+    zoom_level: 9,
+    population: '48,000',
+    area_sqkm: '261 km²',
+    gdp_billion: 1.05,
+    main_exports: {
+      en: ['Broadcasting Equipment & Radios ($28M)', 'Electrical Switches ($14M)', 'Beverages ($8M)'],
+      es: ['Equipos electrónicos de telecomunicaciones ($28M)', 'Interruptores eléctricos ($14M)', 'Bebidas ($8M)'],
+      total_val_billion: 0.065,
+    },
+    main_imports: {
+      en: ['Refined Petroleum ($75M)', 'Cars & Trucks ($28M)', 'Poultry Meat ($18M)', 'Jewelry ($12M)'],
+      es: ['Petróleo refinado ($75M)', 'Automóviles ($28M)', 'Carne de ave ($18M)', 'Joyería ($12M)'],
+      total_val_billion: 0.38,
+    },
+    natural_wealth: {
+      en: ['Mount Liamuiga dormant stratovolcano with crater lake', 'Brimstone Hill Fortress (UNESCO "Gibraltar of the West Indies")', 'Nevis Peak cloud forest cone', 'Pioneer of the world’s first citizenship-by-investment program'],
+      es: ['Estratovolcán inactivo Mount Liamuiga con lago de cráter', 'Fortaleza de Brimstone Hill (el "Gibraltar del Caribe")', 'Cono volcánico de Nevis Peak cubierto de selva nubosa'],
+    },
+    physical_geography_summary: {
+      en: 'A two-island federation in the Leeward Islands: Saint Kitts is shaped like a cricket bat with a central volcanic ridge, separated from the circular cone island of Nevis by The Narrows strait.',
+      es: 'Federación de dos islas volcánicas separadas por el estrecho de The Narrows: San Cristóbal al norte y el cono simétrico de Nieves al sur.'
+    },
+    landforms: [
+      {
+        id: 'kn-peak-liamuiga',
+        type: 'volcano',
+        name_en: 'Mount Liamuiga',
+        name_es: 'Monte Liamuiga',
+        coords: [17.37, -62.8],
+        elevation_m: 1156,
+        description_en: 'Dormant stratovolcano and highest peak on Saint Kitts, housing a 1-km wide crater lake.',
+        description_es: 'Estratovolcán inactivo y punto más alto de San Cristóbal (1,156m) con un lago de cráter.'
+      }
+    ],
+    interesting_fact: {
+      en: 'Saint Kitts and Nevis is the smallest sovereign country in the entire Western Hemisphere, both in terms of geographical area (261 km²) and population (approx. 48,000).',
+      es: '¡San Cristóbal y Nieves es el país soberano más pequeño de todo el hemisferio occidental, tanto en superficie (261 km²) como en población (unos 48,000 habitantes)!'
+    },
+    teks_alignment: ['TEKS 5.6A: Island-arc stratovolcanic geomorphology', 'TEKS 6.5A: Smallest sovereign states in the Americas']
   }
 ];

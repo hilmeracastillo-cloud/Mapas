@@ -2758,63 +2758,7 @@ export const ALL_ASIA_ADDITIONAL_COUNTRIES: CountryDossierData[] = [
   },
 
   // =========================================================================
-  // 46. CYPRUS
-  // =========================================================================
-  {
-    id: 'CYP',
-    iso2: 'cy',
-    iso3: 'CYP',
-    name_en: 'Cyprus',
-    name_es: 'Chipre',
-    continent: 'Asia',
-    continent_es: 'Asia',
-    capital_en: 'Nicosia',
-    capital_es: 'Nicosia',
-    capital_coords: [35.1856, 33.3823],
-    center_coords: [35.1264, 33.4299],
-    zoom_level: 8,
-    population: '1,250,000',
-    area_sqkm: '9,251 km²',
-    gdp_billion: 32,
-    main_exports: {
-      en: ['Packaged Medicaments ($520M)', 'Passenger Ships & Yachts ($420M)', 'Halloumi Cheese ($310M)', 'Refined Petroleum ($280M)', 'Citrus Fruits ($95M)'],
-      es: ['Medicamentos envasados ($520M)', 'Yates y buques comerciales ($420M)', 'Queso Halloumi tradicional ($310M)', 'Petróleo refinado ($280M)', 'Cítricos ($95M)'],
-      total_val_billion: 4.8,
-    },
-    main_imports: {
-      en: ['Refined Petroleum ($2.4B)', 'Passenger Ships ($1.8B)', 'Cars ($850M)', 'Medicaments ($420M)'],
-      es: ['Petróleo refinado ($2.4B)', 'Buques y embarcaciones ($1.8B)', 'Automóviles ($850M)', 'Medicamentos ($420M)'],
-      total_val_billion: 12.5,
-    },
-    natural_wealth: {
-      en: ['Historical copper ore deposits (which gave copper its Latin name "cuprum")', 'Troodos Ophiolite (world’s most intensely studied exposed oceanic crust)', 'Offshore Aphrodite natural gas field', 'Traditional Halloumi sheep and goat dairy farming'],
-      es: ['Yacimientos históricos de cobre (de donde proviene el nombre latino "cuprum")', 'Ofiolita de Troodos (el lecho oceánico expuesto más estudiado por geólogos)', 'Yacimiento de gas natural Aphrodite', 'Queso Halloumi con denominación protegida'],
-    },
-    physical_geography_summary: {
-      en: 'The third-largest island in the Mediterranean Sea. Characterized by two mountain ranges—the forested Troodos in the south and the Kyrenia range along the northern coast—framing the central Mesaoria agricultural plain.',
-      es: 'Tercera isla más grande del mar Mediterráneo. Presenta dos cadenas montañosas (los montes Troodos al sur y la cordillera de Kyrenia al norte) que encierran la llanura agrícola central de Mesaoria.'
-    },
-    landforms: [
-      {
-        id: 'cy-peak-olympus',
-        type: 'peak',
-        name_en: 'Mount Olympus (Troodos)',
-        name_es: 'Monte Olimpo (Troodos)',
-        coords: [34.936, 32.863],
-        elevation_m: 1952,
-        description_en: 'Highest peak in Cyprus, situated in the pine-forested Troodos mountain range.',
-        description_es: 'Punto más alto de Chipre (1,952m), en el macizo boscoso de Troodos.'
-      }
-    ],
-    interesting_fact: {
-      en: 'The English word "copper" derives directly from the island’s ancient name, Cyprus (Cyprium aes: "metal of Cyprus"), whose rich bronze-age copper mines supplied the ancient Mediterranean for millennia.',
-      es: 'La palabra "cobre" en español e inglés deriva directamente del nombre de Chipre (aes Cyprium: "metal de Chipre"), cuyas ricas minas abastecieron a las civilizaciones del Mediterráneo antiguo.'
-    },
-    teks_alignment: ['TEKS 6.6B: Ancient mining extraction influencing modern industrial nomenclature', 'TEKS 6.3B: Island crossroads between Europe, Asia, and Africa']
-  },
-
-  // =========================================================================
-  // 47. STATE OF PALESTINE
+  // 46. STATE OF PALESTINE
   // =========================================================================
   {
     id: 'PSE',

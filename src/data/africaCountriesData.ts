@@ -3117,5 +3117,61 @@ export const ALL_AFRICA_ADDITIONAL_COUNTRIES: CountryDossierData[] = [
       es: 'La cinta transportadora de Bu Craa mide 100 km en línea recta cruzando el desierto del Sáhara hasta el Atlántico, y es visible desde la Estación Espacial Internacional como una línea blanca continua.'
     },
     teks_alignment: ['TEKS 6.6B: Industrial conveyor infrastructure overcoming desert transport frictions', 'TEKS 6.3A: Territorial status and natural resource extraction controversies']
+  },
+
+  // =========================================================================
+  // 54. BURUNDI (BDI)
+  // =========================================================================
+  {
+    id: 'BDI',
+    iso2: 'bi',
+    iso3: 'BDI',
+    name_en: 'Burundi',
+    name_es: 'Burundi',
+    continent: 'Africa',
+    continent_es: 'África',
+    capital_en: 'Gitega (Political), Bujumbura (Economic)',
+    capital_es: 'Guitega (Política), Buyumbura (Económica)',
+    capital_coords: [-3.4273, 29.9246],
+    center_coords: [-3.3731, 29.9189],
+    zoom_level: 8,
+    population: '13,200,000',
+    area_sqkm: '27,834 km²',
+    gdp_billion: 3.2,
+    main_exports: {
+      en: ['Coffee ($120M)', 'Tea ($35M)', 'Gold ($25M)', 'Niobium & Tantalum Ores ($15M)'],
+      es: ['Café arábica de altura ($120M)', 'Té ($35M)', 'Oro ($25M)', 'Minerales de niobio y tantalio ($15M)'],
+      total_val_billion: 0.22,
+    },
+    main_imports: {
+      en: ['Refined Petroleum ($180M)', 'Cement ($45M)', 'Medicaments ($40M)', 'Wheat ($35M)'],
+      es: ['Petróleo refinado ($180M)', 'Cemento ($45M)', 'Medicamentos ($40M)', 'Trigo ($35M)'],
+      total_val_billion: 1.1,
+    },
+    natural_wealth: {
+      en: ['Southernmost southernmost source headwaters of the White Nile River (Ruvyironza River)', 'Lake Tanganyika shoreline and freshwater fisheries', 'Significant nickel laterite deposits at Musongati', 'High-altitude volcanic soils for arabica coffee'],
+      es: ['Fuente más meridional del río Nilo Blanco (río Ruvyironza)', 'Costa y pesquerías del lago Tanganica', 'Yacimientos de níquel en Musongati', 'Suelos volcánicos de alta montaña para café'],
+    },
+    physical_geography_summary: {
+      en: 'A hilly, mountainous landlocked nation in the Great Rift Valley, rising from the northeastern shores of Lake Tanganyika to central peaks exceeding 2,600 meters before sloping into eastern savannas.',
+      es: 'País montañoso sin litoral en la falla del Gran Valle del Rift, que asciende desde la orilla noreste del lago Tanganica hacia cordilleras centrales de más de 2,600 metros.'
+    },
+    landforms: [
+      {
+        id: 'bi-peak-heha',
+        type: 'peak',
+        name_en: 'Mount Heha',
+        name_es: 'Monte Heha',
+        coords: [-3.58, 29.5],
+        elevation_m: 2684,
+        description_en: 'Highest mountain peak in Burundi, located in the Highlands range east of Lake Tanganyika.',
+        description_es: 'Punto más alto de Burundi (2,684m), en las montañas al este del lago Tanganica.'
+      }
+    ],
+    interesting_fact: {
+      en: 'A pyramid erected at Mount Kikizi in southern Burundi marks the southernmost confirmed geographical headwater source of the Nile River, located over 6,600 kilometers from the Mediterranean Sea.',
+      es: 'Una pirámide de piedra en el Monte Kikizi en Burundi marca el nacimiento más meridional del río Nilo, a más de 6,600 km de su desembocadura en el Mediterráneo.'
+    },
+    teks_alignment: ['TEKS 6.4C: Ultimate headwater source of continental river systems (Nile)', 'TEKS 6.3A: Landlocked micro-states in the Great Lakes region']
   }
 ];
