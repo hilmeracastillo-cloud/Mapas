@@ -1424,6 +1424,64 @@ export const LEVEL_4_CONTINENT_QUESTIONS: Record<string, BloomEvaluationQuestion
       explanation_es: 'El Canal de Suez (193 km) une el Mediterráneo con el Mar Rojo. Elimina la necesidad de circunnavegar el continente africano por el Cabo de Buena Esperanza, canalizando el 12% del comercio marítimo mundial.',
       teks_code: 'TEKS 6.8A',
       nwea_strand: 'Global Trade Choke Points'
+    },
+    {
+      id: 'l4-af-q3',
+      level: 4,
+      continent_id: 'Africa',
+      bloom_category: 'analyze',
+      bloom_title_en: 'Analyze: The Great East African Rift and African Great Lakes',
+      bloom_title_es: 'Analizar: El Gran Valle del Rift y los Grandes Lagos de África',
+      scenario_en: 'Studying structural geology and tectonic map patterns across East Africa.',
+      scenario_es: 'Estudiando geología estructural y patrones tectónicos en África Oriental.',
+      question_en: 'How did tectonic divergence create the dramatic landscape of East Africa, including Lake Tanganyika and Mount Kilimanjaro?',
+      question_es: '¿Cómo creó la divergencia tectónica el paisaje de África Oriental, incluyendo el lago Tanganica y el monte Kilimanjaro?',
+      options_en: [
+        'The Nubian and Somalian tectonic plates are pulling apart along the East African Rift System, fracturing the crust into deep rift grabens that filled with deep lakes and allowing magma to breach the surface to form colossal stratovolcanoes like Kilimanjaro and Mount Kenya.',
+        'Glaciers from Antarctica carved the rift valley during the last Ice Age.',
+        'Meteorites struck in a straight line across East Africa to form the lakes.',
+        'Underground coal fires melted the bedrock into trenches.'
+      ],
+      options_es: [
+        'Las placas tectónicas Nubia y Somalí se están separando a lo largo del Sistema del Rift de África Oriental, fracturando la corteza en fosas tectónicas profundas ocupadas por lagos y permitiendo el ascenso de magma que formó gigantescos volcanes como el Kilimanjaro y el Monte Kenia.',
+        'Glaciares de la Antártida excavaron el valle del rift durante la última glaciación.',
+        'Meteoritos impactaron en línea recta a través de África Oriental formando los lagos.',
+        'Incendios subterráneos de carbón derritieron el lecho rocoso en trincheras.'
+      ],
+      correct_index: 0,
+      explanation_en: 'The East African Rift is an active continental divergent boundary where Eastern Africa is splitting from the mainland. This rifting creates deep graben lakes (Tanganyika, Malawi) and extensive volcanic fields (Kilimanjaro, Nyiragongo).',
+      explanation_es: 'El Rift de África Oriental es una frontera divergente activa donde la placa somalí se separa de la nubia, creando fosas con lagos ultraprofundos (Tanganica, Malaui) y conos volcánicos masivos como el Kilimanjaro.',
+      teks_code: 'TEKS 6.3C',
+      nwea_strand: 'Continental Rifting & Volcanism'
+    },
+    {
+      id: 'l4-af-q4',
+      level: 4,
+      continent_id: 'Africa',
+      bloom_category: 'evaluate',
+      bloom_title_en: 'Evaluate: The Congo Basin as the Planet’s Critical Carbon Sink',
+      bloom_title_es: 'Evaluar: La Cuenca del Congo como Sumidero Crítico de Carbono',
+      scenario_en: 'Assessing global climate balance maps and carbon storage across tropical rainforests.',
+      scenario_es: 'Evaluando mapas del equilibrio climático global y almacenamiento de carbono en selvas tropicales.',
+      question_en: 'Why is the preservation of the Congo Basin rainforest and its central peatlands vital for the global climate system?',
+      question_es: '¿Por qué la preservación de la selva de la Cuenca del Congo y sus turberas centrales es vital para el equilibrio climático del planeta?',
+      options_en: [
+        'The Congo Basin is the second-largest tropical rainforest on Earth and houses the Cuvette Centrale peatlands, which store approximately 30 billion tons of carbon—equivalent to nearly 3 years of all global fossil fuel emissions.',
+        'Because the Congo River provides drinking water directly to North America.',
+        'Because the trees in the Congo absorb all cosmic radiation from space.',
+        'Because the Congo Basin is completely made of ice.'
+      ],
+      options_es: [
+        'La cuenca del Congo es la segunda selva tropical más extensa del planeta y alberga las turberas de la Cuvette Centrale, que almacenan unas 30,000 millones de toneladas de carbono, equivalente a unos 3 años de todas las emisiones globales de combustibles fósiles.',
+        'Porque el río Congo provee agua potable directamente a Norteamérica.',
+        'Porque los árboles del Congo absorben toda la radiación cósmica del espacio exterior.',
+        'Porque la cuenca del Congo está formada enteramente de hielo.'
+      ],
+      correct_index: 0,
+      explanation_en: 'The Congo Basin and its newly mapped peat complex act as one of Earth’s premier active carbon sinks, sequestering massive amounts of atmospheric greenhouse gases and regulating continental rainfall cycles.',
+      explanation_es: 'La cuenca del Congo y sus turberas actúan como uno de los sumideros de carbono más potentes de la Tierra, reteniendo miles de millones de toneladas de gases de efecto invernadero y regulando los regímenes de lluvia de África.',
+      teks_code: 'TEKS 6.4A',
+      nwea_strand: 'Ecosystem Carbon Sinks & Climate Regulation'
     }
   ],
 

@@ -2,6 +2,7 @@ import { CountryDossierData } from '../types/geography';
 import { ALL_AMERICAS_ADDITIONAL_COUNTRIES } from './americasCountriesData';
 import { ALL_EUROPE_ADDITIONAL_COUNTRIES } from './europeCountriesData';
 import { ALL_ASIA_ADDITIONAL_COUNTRIES } from './asiaCountriesData';
+import { ALL_AFRICA_ADDITIONAL_COUNTRIES } from './africaCountriesData';
 
 const BASE_COUNTRIES: CountryDossierData[] = [
   {
@@ -829,4 +830,5 @@ export const STARTER_COUNTRIES: CountryDossierData[] = [
   ...ALL_AMERICAS_ADDITIONAL_COUNTRIES,
   ...ALL_EUROPE_ADDITIONAL_COUNTRIES,
   ...ALL_ASIA_ADDITIONAL_COUNTRIES,
+  ...ALL_AFRICA_ADDITIONAL_COUNTRIES,
 ];
