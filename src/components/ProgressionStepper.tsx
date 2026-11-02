@@ -73,11 +73,11 @@ export const ProgressionStepper: React.FC<ProgressionStepperProps> = ({
   ];
 
   return (
-    <div className="bg-slate-950/90 border-b border-slate-800 px-2 sm:px-4 py-2 select-none">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
+    <div className="bg-slate-950/90 border-b border-slate-800 px-2 sm:px-4 py-1.5 landscape:py-1 select-none">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-1.5 sm:gap-2">
         
-        {/* Progression Stepper Track */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2 w-full md:w-auto flex-1">
+        {/* Progression Stepper Track (single row of 4 in landscape mode) */}
+        <div className="grid grid-cols-2 landscape:grid-cols-4 lg:grid-cols-4 gap-1 sm:gap-2 landscape:gap-1.5 w-full md:w-auto flex-1">
           {levelsConfig.map((item) => {
             const isUnlocked = progressState.unlockedLevels[item.level];
             const isActive = progressState.activeLevel === item.level;
@@ -91,16 +91,16 @@ export const ProgressionStepper: React.FC<ProgressionStepperProps> = ({
               <div
                 key={item.level}
                 onClick={() => onSelectLevel(item.level)}
-                className={`p-2 sm:p-2.5 rounded-xl border transition-all cursor-pointer relative flex flex-col justify-between ${
+                className={`p-1.5 sm:p-2.5 landscape:p-1 rounded-lg sm:rounded-xl border transition-all cursor-pointer relative flex flex-col justify-between ${
                   isActive
-                    ? 'bg-slate-900 border-amber-400 ring-2 ring-amber-400/30 shadow-lg'
+                    ? 'bg-slate-900 border-amber-400 ring-1 sm:ring-2 ring-amber-400/30 shadow-lg'
                     : 'bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/90'
                 }`}
               >
-                <div className="flex items-center justify-between gap-1.5 mb-1">
-                  <div className="flex items-center gap-1.5 min-w-0">
+                <div className="flex items-center justify-between gap-1 mb-0.5 sm:mb-1">
+                  <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
                     <div
-                      className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
+                      className={`w-5 h-5 sm:w-6 sm:h-6 landscape:w-5 landscape:h-5 rounded-md sm:rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0 ${
                         hasPassed
                           ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                           : isActive
@@ -110,7 +110,7 @@ export const ProgressionStepper: React.FC<ProgressionStepperProps> = ({
                     >
                       {hasPassed ? '✓' : item.level}
                     </div>
-                    <span className="text-[11px] sm:text-xs font-bold text-white truncate">
+                    <span className="text-[10px] sm:text-xs font-bold text-white truncate">
                       {isEs ? item.title_es : item.title_en}
                     </span>
                   </div>
@@ -118,22 +118,22 @@ export const ProgressionStepper: React.FC<ProgressionStepperProps> = ({
                   {/* Status Indicator Badge */}
                   <div className="shrink-0">
                     {hasPassed ? (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono font-bold">
+                      <span className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.2 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono font-bold">
                         {score}% ✓
                       </span>
                     ) : score !== null ? (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono font-bold">
-                        {score}% (90% meta)
+                      <span className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.2 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono font-bold">
+                        {score}%
                       </span>
                     ) : (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono">
-                        {isEs ? 'Disponible' : 'Ready'}
+                      <span className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.2 rounded bg-slate-800 border border-slate-700 text-slate-400 font-mono">
+                        {isEs ? 'Listo' : 'Ready'}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="text-[10px] text-slate-400 truncate hidden xs:block">
+                <div className="text-[9px] sm:text-[10px] text-slate-400 truncate hidden xs:block landscape:hidden lg:landscape:block">
                   {isEs ? item.subtitle_es : item.subtitle_en}
                 </div>
               </div>
@@ -142,23 +142,23 @@ export const ProgressionStepper: React.FC<ProgressionStepperProps> = ({
         </div>
 
         {/* Action Controls for the Active Level */}
-        <div className="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end pt-1 md:pt-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 w-full md:w-auto justify-end pt-0.5 md:pt-0">
           <button
             onClick={() => onOpenLearnModal(progressState.activeLevel)}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+            className="px-2.5 py-1 sm:px-3 sm:py-1.5 landscape:py-1 rounded-lg sm:rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 text-[11px] sm:text-xs font-bold flex items-center gap-1 transition-all shadow-sm active:scale-95"
             title={isEs ? 'Estudiar contenido didáctico' : 'Review guided learning module'}
           >
-            <BookOpen className="w-3.5 h-3.5 text-amber-400" />
-            <span>{isEs ? '1. Estudiar Nivel' : '1. Learn Module'}</span>
+            <BookOpen className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-amber-400" />
+            <span>{isEs ? '1. Estudiar' : '1. Learn'}</span>
           </button>
 
           <button
             onClick={() => onOpenEvaluation(progressState.activeLevel)}
-            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+            className="px-2.5 py-1 sm:px-3 sm:py-1.5 landscape:py-1 rounded-lg sm:rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-[11px] sm:text-xs font-black flex items-center gap-1 shadow-md transition-all active:scale-95"
             title={isEs ? 'Realizar evaluación de maestría (mínimo 90% para avanzar)' : 'Take mastery evaluation (90% required to advance)'}
           >
-            <Target className="w-3.5 h-3.5" />
-            <span>{isEs ? '2. Evaluación (90%)' : '2. Assess (90%)'}</span>
+            <Target className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
+            <span>{isEs ? '2. Evaluación' : '2. Assess'}</span>
           </button>
         </div>
 

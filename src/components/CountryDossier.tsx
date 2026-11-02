@@ -32,36 +32,36 @@ export const CountryDossier: React.FC<CountryDossierProps> = ({
 
   return (
     <aside
-      className="fixed top-14 sm:top-16 right-0 bottom-0 z-50 w-full sm:w-[360px] md:w-[400px] lg:w-[420px] bg-slate-900/98 backdrop-blur-2xl border-l border-slate-700/80 shadow-2xl flex flex-col text-slate-100 transition-transform duration-300 ease-in-out overflow-hidden"
+      className="fixed top-11 sm:top-16 landscape:top-11 right-0 bottom-0 z-50 w-full landscape:w-[320px] sm:landscape:w-[350px] sm:w-[360px] md:w-[400px] lg:w-[420px] bg-slate-900/98 backdrop-blur-2xl border-l border-slate-700/80 shadow-2xl flex flex-col text-slate-100 transition-transform duration-300 ease-in-out overflow-hidden"
       aria-label="Country Dossier"
     >
       {/* Dossier Header */}
-      <div className="relative p-3.5 sm:p-4 border-b border-slate-800 bg-gradient-to-b from-slate-800/80 to-slate-900/90">
+      <div className="relative p-3 sm:p-4 landscape:p-2.5 border-b border-slate-800 bg-gradient-to-b from-slate-800/80 to-slate-900/90">
         <button
           onClick={onClose}
-          className="absolute top-3.5 right-3.5 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          className="absolute top-2.5 sm:top-3.5 right-2.5 sm:right-3.5 p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
           aria-label="Close Dossier"
         >
           <X className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <img
             src={flagUrl}
             alt={`${countryName} flag`}
-            className="w-12 h-8 sm:w-14 sm:h-9 object-cover rounded shadow border border-slate-600/80 shrink-0"
+            className="w-10 h-7 sm:w-14 sm:h-9 landscape:w-9 landscape:h-6 object-cover rounded shadow border border-slate-600/80 shrink-0"
             onError={(e) => {
               (e.target as HTMLElement).style.display = 'none';
             }}
           />
           <div className="pr-6">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <h2 className="text-base sm:text-lg font-extrabold tracking-tight text-white">{countryName}</h2>
-              <span className="text-[10px] px-1.5 py-0.2 rounded font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40">
+              <h2 className="text-sm sm:text-lg landscape:text-sm font-extrabold tracking-tight text-white">{countryName}</h2>
+              <span className="text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40">
                 {country.iso3}
               </span>
             </div>
-            <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+            <div className="text-[10px] sm:text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
               <Globe2 className="w-3 h-3 text-sky-400 shrink-0" />
               <span>{continentName}</span>
               <span>•</span>

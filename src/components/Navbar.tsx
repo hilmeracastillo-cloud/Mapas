@@ -58,15 +58,15 @@ export const Navbar: React.FC<NavbarProps> = ({
   // =========================================================================
   if (isPlayMode) {
     return (
-      <header className="h-14 sm:h-16 bg-slate-900/95 border-b border-slate-800 px-3 sm:px-6 flex items-center justify-between text-slate-100 z-40 select-none backdrop-blur-md safe-pt">
+      <header className="h-14 sm:h-16 landscape:h-11 sm:landscape:h-12 bg-slate-900/95 border-b border-slate-800 px-2 sm:px-6 landscape:px-2.5 flex items-center justify-between text-slate-100 z-40 select-none backdrop-blur-md safe-pt overflow-x-auto no-scrollbar gap-2">
         {/* Brand */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 flex items-center justify-center text-slate-950 font-black shadow-md shadow-amber-500/20 shrink-0">
-            <Compass className="w-4 h-4 sm:w-5 sm:h-5 text-slate-950 stroke-[2.5]" />
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <div className="w-7 h-7 sm:w-9 sm:h-9 landscape:w-7 landscape:h-7 rounded-xl bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 flex items-center justify-center text-slate-950 font-black shadow-md shadow-amber-500/20 shrink-0">
+            <Compass className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-slate-950 stroke-[2.5]" />
           </div>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">GeoMaster</span>
-            <span className="text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className="font-extrabold text-xs sm:text-base tracking-tight text-white">GeoMaster</span>
+            <span className="text-[9px] sm:text-xs font-bold px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
               {isEs ? 'Jugar' : 'Play'}
             </span>
           </div>
@@ -74,18 +74,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Center: Explorar vs Trivia Switcher */}
         {onChangePlaySubMode && (
-          <div className="flex items-center bg-slate-950/80 p-0.5 sm:p-1 rounded-xl border border-slate-800 shadow-inner">
+          <div className="flex items-center bg-slate-950/80 p-0.5 rounded-xl border border-slate-800 shadow-inner shrink-0">
             <button
               type="button"
               onClick={() => onChangePlaySubMode('explore')}
               title={isEs ? 'Modo Explorar: Navegación libre y fichas' : 'Explore Mode: Free map navigation'}
-              className={`px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-2 sm:px-3.5 landscape:px-2.5 py-0.5 sm:py-1.5 landscape:py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
                 playSubMode === 'explore'
                   ? 'bg-emerald-500 text-slate-950 shadow-md font-black ring-1 ring-emerald-300'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               }`}
             >
-              <Compass className="w-3.5 h-3.5" />
+              <Compass className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span>{isEs ? 'Explorar' : 'Explore'}</span>
             </button>
 
@@ -93,16 +93,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               type="button"
               onClick={() => onChangePlaySubMode('trivia')}
               title={isEs ? 'Modo Trivia: Desafío de Continentes, Países, Capitales y Banderas' : 'Trivia Mode: Continents, Countries, Capitals & Flags'}
-              className={`px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-2 sm:px-3.5 landscape:px-2.5 py-0.5 sm:py-1.5 landscape:py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
                 playSubMode === 'trivia'
                   ? 'bg-amber-400 text-slate-950 shadow-md font-black ring-1 ring-amber-300'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
               }`}
             >
-              <Trophy className="w-3.5 h-3.5 text-slate-950" />
+              <Trophy className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-950" />
               <span>{isEs ? 'Trivia' : 'Trivia'}</span>
               {triviaScoreText && (
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-900 text-amber-300 font-mono font-bold ml-0.5">
+                <span className="text-[9px] sm:text-[10px] px-1 py-0.2 sm:px-1.5 rounded-full bg-slate-900 text-amber-300 font-mono font-bold ml-0.5">
                   {triviaScoreText}
                 </span>
               )}
@@ -111,15 +111,15 @@ export const Navbar: React.FC<NavbarProps> = ({
         )}
 
         {/* The Exclusive Buttons: Politico, Relieve, Satelite, Menu Principal */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
           {/* 3 Basemap Lenses */}
-          <div id="tour-lens-switcher" className="flex items-center bg-slate-950/80 p-0.5 sm:p-1 rounded-xl border border-slate-800 shadow-inner">
+          <div id="tour-lens-switcher" className="flex items-center bg-slate-950/80 p-0.5 rounded-xl border border-slate-800 shadow-inner">
             {/* 1. Politico */}
             <button
               type="button"
               onClick={() => onChangeLens('political')}
               title={isEs ? 'Mapa Político: Fronteras y Países' : 'Political Map: Borders & Countries'}
-              className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-1.5 sm:px-3.5 landscape:px-2 py-0.5 sm:py-1.5 landscape:py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
                 currentLens === 'political'
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 ring-1 ring-blue-400'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
@@ -128,13 +128,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>{isEs ? 'Político' : 'Political'}</span>
             </button>
 
-
             {/* 2. Relieve */}
             <button
               type="button"
               onClick={() => onChangeLens('physical')}
               title={isEs ? 'Mapa de Relieve: Hipsometría y Accidentes Físicos' : 'Relief Map: Hypsometry & Physical Landforms'}
-              className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-1.5 sm:px-3.5 landscape:px-2 py-0.5 sm:py-1.5 landscape:py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
                 currentLens === 'physical'
                   ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 ring-1 ring-emerald-400'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
@@ -148,7 +147,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               type="button"
               onClick={() => onChangeLens('satellite')}
               title={isEs ? 'Mapa Satélite: Imágenes Satelitales Reales' : 'Satellite Map: Real Satellite Imagery'}
-              className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-1.5 sm:px-3.5 landscape:px-2 py-0.5 sm:py-1.5 landscape:py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
                 currentLens === 'satellite'
                   ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30 ring-1 ring-amber-400'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
@@ -197,7 +196,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   }
 
   return (
-    <header className="h-14 sm:h-16 bg-slate-900/95 border-b border-slate-800 px-2 sm:px-4 flex items-center justify-between text-slate-100 z-40 select-none backdrop-blur-md safe-pt">
+    <header className="h-14 sm:h-16 landscape:h-11 sm:landscape:h-12 bg-slate-900/95 border-b border-slate-800 px-2 sm:px-4 landscape:px-2.5 flex items-center justify-between text-slate-100 z-40 select-none backdrop-blur-md safe-pt overflow-x-auto no-scrollbar gap-2">
       {/* Brand & Geographic Title */}
       <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         <div className="flex items-center gap-1.5 sm:gap-2 cursor-pointer" onClick={() => onChangeMode('explore')}>

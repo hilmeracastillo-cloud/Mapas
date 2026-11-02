@@ -66,51 +66,51 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
       </header>
 
       {/* Main Welcome Container */}
-      <main className="relative z-10 w-full max-w-4xl mx-auto my-auto py-6 sm:py-10 flex flex-col items-center text-center space-y-6 sm:space-y-8">
+      <main className="relative z-10 w-full max-w-4xl mx-auto my-auto py-3 sm:py-10 landscape:py-1.5 flex flex-col items-center text-center space-y-3 sm:space-y-8 landscape:space-y-2">
         
         {/* Bilingual Welcome Headings */}
-        <div className="space-y-3 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs text-amber-400 font-mono font-medium shadow-inner">
-            <Sparkles className="w-3.5 h-3.5" />
+        <div className="space-y-1.5 sm:space-y-3 landscape:space-y-1 max-w-3xl">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] sm:text-xs text-amber-400 font-mono font-medium shadow-inner">
+            <Sparkles className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
             <span>Sistema Pedagógico Conducido por Capítulos / Chapter-Led Mastery</span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
+          <h1 className="text-xl sm:text-4xl md:text-5xl landscape:text-lg font-black text-white tracking-tight leading-tight">
             Bienvenido a GeoMaster Explorer
-            <span className="block text-xl sm:text-3xl md:text-4xl text-amber-400 font-extrabold mt-1">
+            <span className="block text-base sm:text-3xl md:text-4xl landscape:text-sm text-amber-400 font-extrabold mt-0.5 sm:mt-1">
               Welcome to GeoMaster Explorer
             </span>
           </h1>
 
-          <p className="text-xs sm:text-sm md:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm md:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed hidden sm:block landscape:hidden md:landscape:block">
             Plataforma interactiva para el desarrollo de la alfabetización cartográfica y la comprensión profunda de la geografía física y política mundial.
-            <span className="block text-slate-400 mt-1 italic">
+            <span className="block text-slate-400 mt-0.5 italic">
               Interactive platform for cartographic literacy and in-depth understanding of global physical and political geography.
             </span>
           </p>
         </div>
 
         {/* Instruction and the TWO Language Buttons directly below welcome message */}
-        <div className="w-full max-w-xl space-y-3 pt-2">
-          <div className="text-xs font-semibold text-slate-400 flex items-center justify-center gap-2">
-            <span>Selecciona tu idioma para continuar / Select your language to continue:</span>
+        <div className="w-full max-w-xl space-y-2 sm:space-y-3 pt-1 landscape:pt-0">
+          <div className="text-[11px] sm:text-xs font-semibold text-slate-400 flex items-center justify-center gap-2">
+            <span>Selecciona tu idioma para continuar / Select your language:</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-2 gap-2.5 sm:gap-3.5 landscape:gap-2.5">
             {/* English Button */}
             <button
               type="button"
               onClick={() => onSelectLanguage('en')}
-              className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 border-2 border-slate-700 hover:border-amber-400 text-white shadow-xl transition-all flex flex-col items-center text-center group active:scale-95"
+              className="p-3 sm:p-5 landscape:p-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 border-2 border-slate-700 hover:border-amber-400 text-white shadow-xl transition-all flex flex-col items-center text-center group active:scale-95"
             >
-              <div className="text-3xl mb-1.5">🇺🇸</div>
-              <span className="text-base sm:text-lg font-black text-white group-hover:text-amber-300 transition-colors">
+              <div className="text-2xl sm:text-3xl landscape:text-xl mb-1">🇺🇸</div>
+              <span className="text-sm sm:text-lg landscape:text-sm font-black text-white group-hover:text-amber-300 transition-colors">
                 English
               </span>
-              <span className="text-xs text-slate-300 mt-0.5">
+              <span className="text-[11px] sm:text-xs text-slate-300 mt-0.5">
                 Continue in English
               </span>
-              <span className="mt-3 text-[11px] font-bold text-amber-400 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+              <span className="mt-1.5 sm:mt-3 text-[10px] sm:text-[11px] font-bold text-amber-400 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                 Select Mode <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </button>
@@ -119,16 +119,16 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             <button
               type="button"
               onClick={() => onSelectLanguage('es')}
-              className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 border-2 border-slate-700 hover:border-amber-400 text-white shadow-xl transition-all flex flex-col items-center text-center group active:scale-95"
+              className="p-3 sm:p-5 landscape:p-2.5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 border-2 border-slate-700 hover:border-amber-400 text-white shadow-xl transition-all flex flex-col items-center text-center group active:scale-95"
             >
-              <div className="text-3xl mb-1.5">🇪🇸</div>
-              <span className="text-base sm:text-lg font-black text-white group-hover:text-amber-300 transition-colors">
+              <div className="text-2xl sm:text-3xl landscape:text-xl mb-1">🇪🇸</div>
+              <span className="text-sm sm:text-lg landscape:text-sm font-black text-white group-hover:text-amber-300 transition-colors">
                 Español
               </span>
-              <span className="text-xs text-slate-300 mt-0.5">
+              <span className="text-[11px] sm:text-xs text-slate-300 mt-0.5">
                 Continuar en Español
               </span>
-              <span className="mt-3 text-[11px] font-bold text-amber-400 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+              <span className="mt-1.5 sm:mt-3 text-[10px] sm:text-[11px] font-bold text-amber-400 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                 Seleccionar Modalidad <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </button>
@@ -136,7 +136,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
         </div>
 
         {/* Sequential Progression Quick Summary Strip */}
-        <div className="w-full max-w-3xl pt-4 border-t border-slate-800/80">
+        <div className="w-full max-w-3xl pt-3 border-t border-slate-800/80 hidden sm:block landscape:hidden md:landscape:block">
           <p className="text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-2">
             Ruta Secuencial de Aprendizaje / Sequential Learning Roadmap:
           </p>

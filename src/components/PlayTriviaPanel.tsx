@@ -18,7 +18,9 @@ import {
   AlertCircle,
   HelpCircle,
   ArrowLeft,
-  Info
+  Info,
+  Minimize2,
+  Maximize2
 } from 'lucide-react';
 
 interface PlayTriviaPanelProps {
@@ -59,6 +61,7 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
   isBehind = false,
 }) => {
   const isEs = currentLang === 'es';
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   const categoryCards: {
     id: TriviaFlavor;
@@ -144,10 +147,46 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
     };
   }, []);
 
+  // If collapsed by user (especially useful on mobile landscape to see full map)
+  if (isCollapsed) {
+    return (
+      <div
+        className="fixed bottom-3 right-3 z-40 bg-slate-900/95 backdrop-blur-xl border border-amber-400/50 rounded-2xl p-2 sm:p-2.5 shadow-2xl flex items-center gap-2.5 sm:gap-3 text-white ring-2 ring-amber-400/20 max-w-[calc(100vw-24px)] animate-in fade-in"
+        aria-label={isEs ? 'Panel de trivia minimizado' : 'Minimized trivia panel'}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center shrink-0">
+            <Trophy className="w-4 h-4 text-slate-950 font-black" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-mono font-bold text-amber-400 leading-none">
+              {formatPoints(stats?.totalScore)} pts
+            </span>
+            {question && currentFlavor && !isAnswered && (
+              <span className="text-[11px] font-medium text-slate-200 max-w-[140px] sm:max-w-[200px] truncate leading-tight mt-0.5">
+                {isEs ? question.question_es : question.question_en}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsCollapsed(false)}
+          className="px-2.5 py-1 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs flex items-center gap-1 shadow-md transition-all active:scale-95 shrink-0"
+          title={isEs ? 'Expandir panel de trivia' : 'Expand trivia panel'}
+        >
+          <Maximize2 className="w-3.5 h-3.5" />
+          <span>{isEs ? 'Ver Panel' : 'Expand'}</span>
+        </button>
+      </div>
+    );
+  }
+
   return (
     <aside
       ref={panelRef}
-      className={`fixed sm:absolute top-16 sm:top-20 bottom-3 sm:bottom-6 right-3 sm:right-6 w-[calc(100vw-24px)] sm:w-[420px] md:w-[450px] max-h-[calc(100dvh-5.5rem)] bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl sm:rounded-3xl shadow-2xl p-3.5 sm:p-4 text-slate-100 ring-1 ring-amber-400/20 duration-300 flex flex-col min-h-0 select-text transition-all ${
+      className={`fixed sm:absolute top-14 sm:top-20 landscape:top-12 bottom-2 sm:bottom-6 landscape:bottom-2 right-2 sm:right-6 landscape:right-2 w-[calc(100vw-16px)] sm:w-[420px] landscape:w-[320px] sm:landscape:w-[350px] md:landscape:w-[380px] max-h-[calc(100dvh-4rem)] landscape:max-h-[calc(100dvh-3.2rem)] bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl sm:rounded-3xl shadow-2xl p-3 sm:p-4 landscape:p-2.5 text-slate-100 ring-1 ring-amber-400/20 duration-300 flex flex-col min-h-0 select-text transition-all ${
         isBehind
           ? 'z-20 opacity-20 pointer-events-none scale-95'
           : 'z-40 opacity-100 pointer-events-auto scale-100 animate-in slide-in-from-right'
@@ -156,26 +195,26 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
       aria-label="Panel de Trivia"
     >
       {/* 1. TOP PINNED SECTION (Header & Live Score Counter - never scrolls away) */}
-      <div className="shrink-0 space-y-3 pb-3 border-b border-slate-800">
-        {/* Top Header: Title, Category back button, Exit to Explore */}
+      <div className="shrink-0 space-y-2 sm:space-y-3 landscape:space-y-1.5 pb-2 sm:pb-3 landscape:pb-1.5 border-b border-slate-800">
+        {/* Top Header: Title, Category back button, Minimize, Exit to Explore */}
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 font-black flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
-              <Trophy className="w-5 h-5 text-slate-950" />
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 landscape:w-7 landscape:h-7 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 font-black flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
+              <Trophy className="w-4 h-4 sm:w-5 sm:h-5 landscape:w-3.5 landscape:h-3.5 text-slate-950" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] sm:text-[10px] font-mono font-bold uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
                   {isEs ? 'Trivia Cartográfica' : 'Map Trivia'}
                 </span>
                 {(stats?.currentStreak ?? 0) >= 2 && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center gap-1">
+                  <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center gap-1">
                     <Flame className="w-3 h-3 text-orange-400 fill-orange-400" />
                     <span>{stats?.currentStreak ?? 0} 🔥</span>
                   </span>
                 )}
               </div>
-              <h2 className="text-sm sm:text-base font-extrabold text-white mt-0.5">
+              <h2 className="text-xs sm:text-base landscape:text-xs font-extrabold text-white mt-0.5">
                 {currentFlavor === null
                   ? isEs
                     ? 'Selección de Categoría'
@@ -187,7 +226,7 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {currentFlavor !== null && (
               <button
                 type="button"
@@ -196,15 +235,25 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
                 className="text-xs font-semibold text-slate-300 hover:text-white px-2 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 transition-colors border border-slate-700 flex items-center gap-1"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{isEs ? 'Categorías' : 'Categories'}</span>
+                <span className="hidden sm:inline landscape:hidden md:landscape:inline">{isEs ? 'Categorías' : 'Categories'}</span>
               </button>
             )}
+
+            {/* Minimize Toggle (Collapses to small pill so user can see 100% of map) */}
+            <button
+              type="button"
+              onClick={() => setIsCollapsed(true)}
+              title={isEs ? 'Minimizar panel (ver mapa completo)' : 'Minimize panel'}
+              className="p-1 sm:p-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors"
+            >
+              <Minimize2 className="w-3.5 h-3.5" />
+            </button>
 
             <button
               type="button"
               onClick={onCloseToExplore}
               title={isEs ? 'Cambiar al modo Explorar' : 'Switch to Explore mode'}
-              className="text-xs font-bold text-slate-400 hover:text-white px-2.5 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 transition-colors border border-slate-700"
+              className="text-xs font-bold text-slate-400 hover:text-white px-2 sm:px-2.5 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 transition-colors border border-slate-700"
             >
               {isEs ? 'Explorar' : 'Explore'}
             </button>
@@ -212,38 +261,38 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
         </div>
 
         {/* VISIBLE LIVE SCORE COUNTER */}
-        <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-2.5 sm:p-3 flex items-center justify-between shadow-inner">
-          <div className="flex items-center gap-3">
+        <div className="bg-slate-950/70 border border-slate-800 rounded-xl sm:rounded-2xl p-2 sm:p-3 landscape:p-1.5 flex items-center justify-between shadow-inner">
+          <div className="flex items-center gap-2 sm:gap-3 landscape:gap-2">
             <div className="flex flex-col">
-              <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400">
-                {isEs ? 'Puntos Acumulados' : 'Total Score'}
+              <span className="text-[9px] sm:text-[10px] uppercase font-mono tracking-wider text-slate-400 leading-none">
+                {isEs ? 'Puntos' : 'Score'}
               </span>
-              <span className="text-lg sm:text-xl font-black text-amber-400 leading-tight">
+              <span className="text-base sm:text-xl landscape:text-sm font-black text-amber-400 leading-tight">
                 {formatPoints(stats?.totalScore)}{' '}
-                <span className="text-xs text-slate-500 font-semibold">
-                  / {stats?.totalAnswered ?? 0} {isEs ? 'preg.' : 'q.'}
+                <span className="text-[10px] sm:text-xs text-slate-500 font-semibold">
+                  / {stats?.totalAnswered ?? 0}
                 </span>
               </span>
             </div>
 
-            <div className="h-7 w-[1px] bg-slate-800" />
+            <div className="h-6 sm:h-7 w-[1px] bg-slate-800" />
 
             <div className="flex flex-col">
-              <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400">
-                {isEs ? 'Al 1er Intento' : '1st Attempt'}
+              <span className="text-[9px] sm:text-[10px] uppercase font-mono tracking-wider text-slate-400 leading-none">
+                {isEs ? '1er Int.' : '1st Att.'}
               </span>
-              <span className="text-base sm:text-lg font-bold text-emerald-400 leading-tight">
+              <span className="text-sm sm:text-lg landscape:text-xs font-bold text-emerald-400 leading-tight">
                 {stats?.perfectFirstAttempts ?? 0}
               </span>
             </div>
 
-            <div className="h-7 w-[1px] bg-slate-800" />
+            <div className="h-6 sm:h-7 w-[1px] bg-slate-800" />
 
             <div className="flex flex-col">
-              <span className="text-[10px] uppercase font-mono tracking-wider text-slate-400">
+              <span className="text-[9px] sm:text-[10px] uppercase font-mono tracking-wider text-slate-400 leading-none">
                 {isEs ? 'Racha' : 'Streak'}
               </span>
-              <span className="text-base sm:text-lg font-bold text-orange-400 leading-tight flex items-center gap-1">
+              <span className="text-sm sm:text-lg landscape:text-xs font-bold text-orange-400 leading-tight flex items-center gap-1">
                 {stats?.currentStreak ?? 0} 🔥
               </span>
             </div>
@@ -254,16 +303,16 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
               type="button"
               onClick={onResetStats}
               title={isEs ? 'Reiniciar estadísticas de trivia' : 'Reset score'}
-              className="p-1.5 rounded-lg bg-slate-800/70 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors border border-slate-700/50"
+              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/70 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors border border-slate-700/50"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </button>
           )}
         </div>
       </div>
 
       {/* 2. SCROLLABLE MIDDLE SECTION (Category Menu or Active Question) */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 py-3 pr-1 space-y-3.5 overscroll-contain">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 py-2 sm:py-3 landscape:py-1.5 pr-1 space-y-2.5 sm:space-y-3.5 landscape:space-y-2 overscroll-contain">
 
         {/* =========================================================================
             STATE 1: MENU DE CATEGORÍAS (NO MUESTRA PREGUNTA ANTES DE SELECCIONAR)
@@ -310,29 +359,29 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
             </div>
 
             {/* 4 Category Selection Cards */}
-            <div className="grid grid-cols-1 gap-2.5">
+            <div className="grid grid-cols-1 landscape:grid-cols-2 sm:landscape:grid-cols-1 gap-2 landscape:gap-1.5">
               {categoryCards.map((cat) => (
                 <button
                   key={cat.id}
                   type="button"
                   onClick={() => onSelectFlavor(cat.id)}
-                  className={`w-full text-left p-3.5 rounded-2xl bg-gradient-to-r ${cat.colorClasses} border ${cat.borderClasses} transition-all active:scale-[0.99] flex items-center justify-between group shadow-lg`}
+                  className={`w-full text-left p-2.5 sm:p-3.5 landscape:p-2 rounded-xl sm:rounded-2xl bg-gradient-to-r ${cat.colorClasses} border ${cat.borderClasses} transition-all active:scale-[0.99] flex items-center justify-between group shadow-lg`}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="flex items-center gap-2.5 sm:gap-3 landscape:gap-2 min-w-0">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 landscape:w-7 landscape:h-7 rounded-lg sm:rounded-xl bg-slate-900/90 border border-slate-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       {cat.icon}
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-sm font-extrabold text-white group-hover:text-amber-300 transition-colors">
+                      <h4 className="text-xs sm:text-sm font-extrabold text-white group-hover:text-amber-300 transition-colors">
                         {isEs ? cat.title_es : cat.title_en}
                       </h4>
-                      <p className="text-[11px] text-slate-300 line-clamp-1 mt-0.5">
+                      <p className="text-[10px] sm:text-[11px] text-slate-300 line-clamp-1 mt-0.5">
                         {isEs ? cat.desc_es : cat.desc_en}
                       </p>
                     </div>
                   </div>
 
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition-all shrink-0 ml-2" />
+                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition-all shrink-0 ml-1.5" />
                 </button>
               ))}
             </div>
@@ -343,10 +392,10 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
             STATE 2: PREGUNTA ACTIVA (SIN OPCIONES ESCRITAS - SOLO CLICK EN MAPA)
             ========================================================================= */}
         {currentFlavor !== null && question && (
-          <div className="space-y-3.5">
+          <div className="space-y-2.5 sm:space-y-3.5 landscape:space-y-2">
             {/* Category Pill Indicator & Attempts Badge */}
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono uppercase text-amber-400 font-bold flex items-center gap-1.5">
+              <span className="text-[10px] sm:text-[11px] font-mono uppercase text-amber-400 font-bold flex items-center gap-1.5">
                 {currentFlavor === 'continents' && <Globe2 className="w-3.5 h-3.5" />}
                 {currentFlavor === 'countries' && <Compass className="w-3.5 h-3.5" />}
                 {currentFlavor === 'capitals' && <Landmark className="w-3.5 h-3.5" />}
@@ -367,7 +416,7 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
               {/* Attempt Counter & Value */}
               {!isAnswered ? (
                 <span
-                  className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                  className={`text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full border ${
                     currentAttempt === 1
                       ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                       : currentAttempt === 2
@@ -387,30 +436,30 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
                     : '0 pt'}
                 </span>
               ) : (
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                <span className="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
                   {isEs ? 'Respondida' : 'Completed'}
                 </span>
               )}
             </div>
 
             {/* Question Card */}
-            <div className="bg-gradient-to-b from-slate-800/80 to-slate-900/90 border border-slate-700/90 rounded-2xl p-4 space-y-3 shadow-lg">
+            <div className="bg-gradient-to-b from-slate-800/80 to-slate-900/90 border border-slate-700/90 rounded-xl sm:rounded-2xl p-3 sm:p-4 landscape:p-2.5 space-y-2 sm:space-y-3 landscape:space-y-1.5 shadow-lg">
               <div className="space-y-1">
-                <h3 className="text-base sm:text-lg font-black text-white leading-snug">
+                <h3 className="text-sm sm:text-base md:text-lg font-black text-white leading-snug">
                   {isEs ? question.question_es : question.question_en}
                 </h3>
               </div>
 
               {/* Special Visual: National Flag for Flags Flavor */}
               {currentFlavor === 'flags' && question.flagUrl && (
-                <div className="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-950/90 border border-slate-800 shadow-inner">
+                <div className="flex flex-col items-center justify-center p-2 sm:p-3 landscape:p-1.5 rounded-xl sm:rounded-2xl bg-slate-950/90 border border-slate-800 shadow-inner">
                   <img
                     src={question.flagUrl}
                     alt="Bandera nacional para identificar"
-                    className="w-36 h-24 object-cover rounded-xl shadow-2xl ring-2 ring-white/10 border border-slate-700"
+                    className="w-28 h-18 sm:w-36 sm:h-24 landscape:w-24 landscape:h-16 object-cover rounded-xl shadow-2xl ring-2 ring-white/10 border border-slate-700"
                     loading="eager"
                   />
-                  <span className="text-[11px] text-slate-400 font-medium mt-2">
+                  <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium mt-1.5">
                     {isEs
                       ? 'Busca y pulsa este país directamente en el mapa'
                       : 'Find and tap this country directly on the map'}
@@ -420,13 +469,13 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
 
               {/* Special Clue: Capital Name Highlight for Capitals Flavor */}
               {currentFlavor === 'capitals' && question.capital_es && (
-                <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-sky-500/10 border border-sky-500/30 text-sky-200">
-                  <Landmark className="w-5 h-5 text-sky-400 shrink-0" />
+                <div className="flex items-center gap-2 sm:gap-2.5 p-2 sm:p-3 landscape:p-1.5 rounded-xl sm:rounded-2xl bg-sky-500/10 border border-sky-500/30 text-sky-200">
+                  <Landmark className="w-4 h-4 sm:w-5 sm:h-5 text-sky-400 shrink-0" />
                   <div>
-                    <span className="text-[10px] uppercase font-mono tracking-wider text-sky-300 block">
+                    <span className="text-[9px] sm:text-[10px] uppercase font-mono tracking-wider text-sky-300 block">
                       {isEs ? 'Capital a ubicar' : 'Capital to locate'}
                     </span>
-                    <strong className="text-base text-white">
+                    <strong className="text-sm sm:text-base text-white">
                       {isEs ? question.capital_es : question.capital_en}
                     </strong>
                   </div>
@@ -434,9 +483,9 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
               )}
 
               {/* Instructions banner: NO written alternatives */}
-              <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center gap-2 text-xs text-slate-300">
-                <MapPin className="w-4 h-4 text-amber-400 shrink-0 animate-bounce" />
-                <span>
+              <div className="p-2 sm:p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center gap-2 text-xs text-slate-300">
+                <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-bounce" />
+                <span className="text-[11px] sm:text-xs">
                   {isEs
                     ? 'Haz clic directamente sobre el mapa mundi para enviar tu respuesta.'
                     : 'Click directly on the world map to submit your answer.'}

@@ -127,95 +127,95 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
       </header>
 
       {/* Main Choice Area */}
-      <main className="relative z-10 w-full max-w-4xl mx-auto my-auto py-6 sm:py-8 flex flex-col items-center text-center space-y-6 sm:space-y-8">
+      <main className="relative z-10 w-full max-w-5xl mx-auto my-auto py-3 sm:py-8 landscape:py-1.5 flex flex-col items-center text-center space-y-3 sm:space-y-6 landscape:space-y-2">
         
         {/* Title & Subtitle */}
-        <div className="space-y-2 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs text-amber-400 font-mono font-medium shadow-inner">
-            <Sparkles className="w-3.5 h-3.5" />
+        <div className="space-y-1 sm:space-y-2 landscape:space-y-1 max-w-2xl">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] sm:text-xs text-amber-400 font-mono font-medium shadow-inner">
+            <Sparkles className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
             <span>{isEs ? 'Experiencia de Usuario' : 'User Experience Mode'}</span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+          <h1 className="text-xl sm:text-4xl landscape:text-lg font-black text-white tracking-tight">
             {isEs ? '¿Cómo deseas comenzar hoy?' : 'How would you like to start today?'}
           </h1>
 
-          <p className="text-xs sm:text-sm md:text-base text-slate-300 max-w-xl mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm md:text-base landscape:text-xs text-slate-300 max-w-xl mx-auto leading-relaxed hidden sm:block landscape:hidden md:landscape:block">
             {isEs
               ? 'Elige explorar directamente el mapa político de todos los países o avanzar por el menú de módulos de aprendizaje:'
               : 'Choose between directly exploring the political world map of all countries or diving into the structured learning modules:'}
           </p>
         </div>
 
-        {/* 2 Big Choice Cards: Jugar / Play vs Aprender / Learn */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-3xl text-left">
+        {/* 2 Big Choice Cards: Jugar / Play vs Aprender / Learn (side-by-side in landscape) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 landscape:grid-cols-2 gap-3 sm:gap-5 landscape:gap-3 w-full max-w-4xl text-left">
           
           {/* ================= OPTION 1: JUGAR / PLAY ================= */}
           <div
-            className="group relative rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-emerald-500/40 hover:border-emerald-400 p-6 sm:p-7 shadow-2xl hover:shadow-emerald-500/10 transition-all flex flex-col justify-between"
+            className="group relative rounded-2xl sm:rounded-3xl landscape:rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-emerald-500/40 hover:border-emerald-400 p-4 sm:p-7 landscape:p-3 shadow-2xl hover:shadow-emerald-500/10 transition-all flex flex-col justify-between"
           >
-            <div className="space-y-4">
+            <div className="space-y-2 sm:space-y-4 landscape:space-y-1.5">
               <div className="flex items-center justify-between">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 group-hover:scale-105 transition-transform shadow-lg shadow-emerald-500/20">
-                  <Gamepad2 className="w-8 h-8 text-emerald-400" />
+                <div className="w-10 h-10 sm:w-14 sm:h-14 landscape:w-8 landscape:h-8 rounded-xl sm:rounded-2xl landscape:rounded-lg bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 group-hover:scale-105 transition-transform shadow-lg shadow-emerald-500/20">
+                  <Gamepad2 className="w-5 h-5 sm:w-8 sm:h-8 landscape:w-4 landscape:h-4 text-emerald-400" />
                 </div>
-                <span className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase tracking-wider">
+                <span className="text-[10px] sm:text-[11px] font-mono font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase tracking-wider">
                   {isEs ? 'Modo de Juego' : 'Play Mode'}
                 </span>
               </div>
 
               <div>
-                <h2 className="text-2xl font-black text-white group-hover:text-emerald-300 transition-colors">
+                <h2 className="text-lg sm:text-2xl landscape:text-base font-black text-white group-hover:text-emerald-300 transition-colors">
                   {isEs ? 'Jugar / Play' : 'Play / Jugar'}
                 </h2>
-                <span className="text-xs font-semibold text-emerald-400/90 block mt-0.5">
+                <span className="text-[11px] sm:text-xs font-semibold text-emerald-400/90 block mt-0.5">
                   {isEs ? 'Exploración Libre y Desafíos de Trivia' : 'Free Exploration & Trivia Challenges'}
                 </span>
               </div>
 
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <p className="text-xs sm:text-sm landscape:text-[11px] text-slate-300 leading-relaxed line-clamp-2 sm:line-clamp-none">
                 {isEs
-                  ? 'Elige entre dos modalidades de juego: explora libremente el mapa mundial y abre las fichas de los 198 países, o pon a prueba tus conocimientos con la Trivia interactiva en el mapa.'
-                  : 'Choose between two game modes: freely explore the political world map with 198 complete dossiers, or test your skills with interactive map Trivia.'}
+                  ? 'Explora libremente el mapa mundial o pon a prueba tus conocimientos con la Trivia interactiva.'
+                  : 'Freely explore the world map or test your knowledge with interactive map Trivia.'}
               </p>
 
-              <ul className="space-y-1.5 text-xs text-slate-400 pt-1">
-                <li className="flex items-center gap-2">
+              <ul className="space-y-1 text-[11px] sm:text-xs text-slate-400 pt-0.5 hidden xs:block">
+                <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   <span>
-                    <strong className="text-slate-200">{isEs ? 'Opción Explorar:' : 'Explore Option:'}</strong>{' '}
-                    {isEs ? 'Navegación libre, capas y fichas detalladas' : 'Free navigation, layers & dossiers'}
+                    <strong className="text-slate-200">{isEs ? 'Explorar:' : 'Explore:'}</strong>{' '}
+                    {isEs ? 'Navegación libre, capas y fichas' : 'Free map navigation & dossiers'}
                   </span>
                 </li>
-                <li className="flex items-center gap-2">
+                <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                   <span>
-                    <strong className="text-amber-300">{isEs ? 'Opción Trivia:' : 'Trivia Option:'}</strong>{' '}
-                    {isEs ? 'Continentes, Países, Capitales y Banderas con conteo en vivo' : 'Continents, Countries, Capitals & Flags with live score'}
+                    <strong className="text-amber-300">{isEs ? 'Trivia:' : 'Trivia:'}</strong>{' '}
+                    {isEs ? 'Continentes, Países, Capitales y Banderas' : 'Continents, Countries, Capitals & Flags'}
                   </span>
                 </li>
               </ul>
             </div>
 
-            <div className="pt-6 space-y-2.5">
+            <div className="pt-3 sm:pt-6 landscape:pt-2 space-y-1.5 sm:space-y-2.5 landscape:space-y-1.5">
               <button
                 type="button"
                 onClick={() => onSelectPlay('explore')}
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all active:scale-95"
+                className="w-full py-2 sm:py-3 landscape:py-1.5 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/25 transition-all active:scale-95"
               >
-                <Compass className="w-4 h-4 text-slate-950" />
+                <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
                 <span>{isEs ? '1. Modo Explorar (Libre)' : '1. Explore Mode (Free)'}</span>
-                <ArrowRight className="w-4 h-4 text-slate-950" />
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
               </button>
 
               <button
                 type="button"
                 onClick={() => onSelectPlay('trivia')}
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 transition-all active:scale-95 border border-amber-300/50"
+                className="w-full py-2 sm:py-3 landscape:py-1.5 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/25 transition-all active:scale-95 border border-amber-300/50"
               >
-                <Trophy className="w-4 h-4 text-slate-950" />
+                <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
                 <span>{isEs ? '2. Modo Trivia (Desafíos)' : '2. Trivia Mode (Quiz)'}</span>
-                <ArrowRight className="w-4 h-4 text-slate-950" />
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
               </button>
             </div>
           </div>
@@ -224,62 +224,62 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
           {/* ================= OPTION 2: APRENDER / LEARN ================= */}
           <div
             onClick={onSelectLearn}
-            className="group relative rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-amber-500/40 hover:border-amber-400 p-6 sm:p-7 shadow-2xl hover:shadow-amber-500/10 transition-all flex flex-col justify-between cursor-pointer active:scale-[0.99]"
+            className="group relative rounded-2xl sm:rounded-3xl landscape:rounded-2xl bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-amber-500/40 hover:border-amber-400 p-4 sm:p-7 landscape:p-3 shadow-2xl hover:shadow-amber-500/10 transition-all flex flex-col justify-between cursor-pointer active:scale-[0.99]"
           >
-            <div className="space-y-4">
+            <div className="space-y-2 sm:space-y-4 landscape:space-y-1.5">
               <div className="flex items-center justify-between">
-                <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 group-hover:scale-105 transition-transform shadow-lg shadow-amber-500/20">
-                  <BookOpen className="w-8 h-8 text-amber-400" />
+                <div className="w-10 h-10 sm:w-14 sm:h-14 landscape:w-8 landscape:h-8 rounded-xl sm:rounded-2xl landscape:rounded-lg bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 group-hover:scale-105 transition-transform shadow-lg shadow-amber-500/20">
+                  <BookOpen className="w-5 h-5 sm:w-8 sm:h-8 landscape:w-4 landscape:h-4 text-amber-400" />
                 </div>
-                <span className="text-[11px] font-mono font-bold px-2.5 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 uppercase tracking-wider">
+                <span className="text-[10px] sm:text-[11px] font-mono font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 uppercase tracking-wider">
                   {isEs ? 'Modo Guiado' : 'Guided Mode'}
                 </span>
               </div>
 
               <div>
-                <h2 className="text-2xl font-black text-white group-hover:text-amber-300 transition-colors">
+                <h2 className="text-lg sm:text-2xl landscape:text-base font-black text-white group-hover:text-amber-300 transition-colors">
                   {isEs ? 'Aprender / Learn' : 'Learn / Aprender'}
                 </h2>
-                <span className="text-xs font-semibold text-amber-400/90 block mt-0.5">
+                <span className="text-[11px] sm:text-xs font-semibold text-amber-400/90 block mt-0.5">
                   {isEs ? 'Menú Principal de Contenidos' : 'Main Content Curriculum Menu'}
                 </span>
               </div>
 
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <p className="text-xs sm:text-sm landscape:text-[11px] text-slate-300 leading-relaxed line-clamp-2 sm:line-clamp-none">
                 {isEs
-                  ? 'Accede al menú estructurado con los 4 módulos pedagógicos de cartografía y geografía mundial, con contenidos didácticos interactivos y verificaciones de aprendizaje.'
-                  : 'Access the structured menu featuring all 4 pedagogical cartography and geography modules, complete with interactive exhibits and learning verification assessments.'}
+                  ? 'Accede al menú estructurado con los 4 módulos pedagógicos de cartografía y geografía mundial.'
+                  : 'Access the structured menu featuring all 4 pedagogical cartography and geography modules.'}
               </p>
 
-              <ul className="space-y-1.5 text-xs text-slate-400 pt-1">
-                <li className="flex items-center gap-2">
+              <ul className="space-y-1 text-[11px] sm:text-xs text-slate-400 pt-0.5 hidden xs:block">
+                <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span>{isEs ? 'Módulo 1: Lectura de 3 Tipos de Mapas' : 'Module 1: Reading the 3 Map Types'}</span>
+                  <span>{isEs ? 'Módulo 1: Lectura de 3 Tipos de Mapas' : 'Module 1: Reading 3 Map Types'}</span>
                 </li>
-                <li className="flex items-center gap-2">
+                <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span>{isEs ? 'Módulo 2: 19 Accidentes Geográficos' : 'Module 2: 19 Terrestrial Landforms'}</span>
+                  <span>{isEs ? 'Módulo 2: 19 Accidentes Geográficos' : 'Module 2: 19 Landforms'}</span>
                 </li>
-                <li className="flex items-center gap-2">
+                <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span>{isEs ? 'Módulo 3: Continentes, Mares y Océanos' : 'Module 3: Continents, Seas & Oceans'}</span>
+                  <span>{isEs ? 'Módulo 3: Continentes y Océanos' : 'Module 3: Continents & Oceans'}</span>
                 </li>
-                <li className="flex items-center gap-2">
+                <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                   <span>{isEs ? 'Módulo 4: Exploración de Países' : 'Module 4: Country Exploration'}</span>
                 </li>
               </ul>
             </div>
 
-            <div className="pt-6">
+            <div className="pt-3 sm:pt-6 landscape:pt-2">
               <button
                 type="button"
                 onClick={onSelectLearn}
-                className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 transition-all group-hover:gap-3"
+                className="w-full py-2.5 sm:py-3.5 landscape:py-2 px-4 sm:px-5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 transition-all group-hover:gap-3"
               >
-                <Layers className="w-4 h-4 text-slate-950" />
+                <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
                 <span>{isEs ? 'Ir al Menú de Contenidos' : 'Go to Content Menu'}</span>
-                <ArrowRight className="w-4 h-4 text-slate-950" />
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
               </button>
             </div>
           </div>
