@@ -1,6 +1,7 @@
-import React, { useRef, useEffect } from 'react';
-import { Language, CountryDossierData } from '../types/geography';
+import React, { useRef, useEffect, useState } from 'react';
+import { Language } from '../types/geography';
 import { TriviaFlavor, TriviaQuestion, TriviaStats } from '../types/trivia';
+import { REVIEW_CONTINENT_OPTIONS } from './PlayReviewPanel';
 import {
   Trophy,
   Flame,
@@ -9,24 +10,27 @@ import {
   ArrowRight,
   RotateCcw,
   Compass,
-  Globe2,
   Landmark,
   Flag,
   Sparkles,
   MapPin,
   Lightbulb,
   AlertCircle,
-  HelpCircle,
   ArrowLeft,
   Info,
   Minimize2,
-  Maximize2
+  Maximize2,
+  Target,
+  Shuffle
 } from 'lucide-react';
 
 interface PlayTriviaPanelProps {
   currentLang: Language;
-  currentFlavor: TriviaFlavor | null;
+  selectedContinentId: string | null;
+  selectedFlavor: TriviaFlavor | null;
+  onSelectContinent: (continentId: string) => void;
   onSelectFlavor: (flavor: TriviaFlavor) => void;
+  onStartTrivia: () => void;
   onReturnToCategories: () => void;
   question: TriviaQuestion | null;
   stats: TriviaStats;
@@ -44,8 +48,11 @@ interface PlayTriviaPanelProps {
 
 export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
   currentLang,
-  currentFlavor,
+  selectedContinentId,
+  selectedFlavor,
+  onSelectContinent,
   onSelectFlavor,
+  onStartTrivia,
   onReturnToCategories,
   question,
   stats,
@@ -61,67 +68,14 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
   isBehind = false,
 }) => {
   const isEs = currentLang === 'es';
-  const [isCollapsed, setIsCollapsed] = React.useState(false);
-
-  const categoryCards: {
-    id: TriviaFlavor;
-    title_es: string;
-    title_en: string;
-    desc_es: string;
-    desc_en: string;
-    icon: React.ReactNode;
-    colorClasses: string;
-    borderClasses: string;
-  }[] = [
-    {
-      id: 'continents',
-      title_es: 'Continentes',
-      title_en: 'Continents',
-      desc_es: 'Localiza los 6 continentes habitados en el mapa mundi.',
-      desc_en: 'Locate the 6 inhabited continents on the world map.',
-      icon: <Globe2 className="w-6 h-6 text-emerald-400" />,
-      colorClasses: 'from-emerald-500/20 to-teal-500/10 hover:border-emerald-400',
-      borderClasses: 'border-emerald-500/30',
-    },
-    {
-      id: 'countries',
-      title_es: 'Países',
-      title_en: 'Countries',
-      desc_es: 'Encuentra cualquiera de los 198 países del planeta en el mapa.',
-      desc_en: 'Find any of the 198 countries on Earth directly on the map.',
-      icon: <Compass className="w-6 h-6 text-amber-400" />,
-      colorClasses: 'from-amber-500/20 to-yellow-500/10 hover:border-amber-400',
-      borderClasses: 'border-amber-500/30',
-    },
-    {
-      id: 'capitals',
-      title_es: 'Capitales',
-      title_en: 'Capitals',
-      desc_es: 'Se te da una capital del mundo; localiza y pulsa su país en el mapa.',
-      desc_en: 'Given a world capital; locate and click its country on the map.',
-      icon: <Landmark className="w-6 h-6 text-sky-400" />,
-      colorClasses: 'from-sky-500/20 to-blue-500/10 hover:border-sky-400',
-      borderClasses: 'border-sky-500/30',
-    },
-    {
-      id: 'flags',
-      title_es: 'Banderas',
-      title_en: 'Flags',
-      desc_es: 'Observa la bandera oficial y pulsa el país correspondiente en el mapa.',
-      desc_en: 'View the official national flag and tap the matching country on the map.',
-      icon: <Flag className="w-6 h-6 text-rose-400" />,
-      colorClasses: 'from-rose-500/20 to-pink-500/10 hover:border-rose-400',
-      borderClasses: 'border-rose-500/30',
-    },
-  ];
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const panelRef = useRef<HTMLElement>(null);
 
   // Helper to format points text safely
   const formatPoints = (pts?: number | null) => {
     const val = typeof pts === 'number' && !isNaN(pts) ? pts : 0;
     return val % 1 === 0 ? val.toString() : val.toFixed(2);
   };
-
-  const panelRef = useRef<HTMLElement>(null);
 
   // Prevent Leaflet from hijacking mousewheel and touch scroll events from the panel
   useEffect(() => {
@@ -147,6 +101,9 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
     };
   }, []);
 
+  const activeContinent = REVIEW_CONTINENT_OPTIONS.find((c) => c.id === selectedContinentId);
+  const isSessionActive = selectedContinentId !== null && selectedFlavor !== null && question !== null;
+
   // If collapsed by user (especially useful on mobile landscape to see full map)
   if (isCollapsed) {
     return (
@@ -162,7 +119,7 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
             <span className="text-[10px] font-mono font-bold text-amber-400 leading-none">
               {formatPoints(stats?.totalScore)} pts
             </span>
-            {question && currentFlavor && !isAnswered && (
+            {question && selectedFlavor && !isAnswered && (
               <span className="text-[11px] font-medium text-slate-200 max-w-[140px] sm:max-w-[200px] truncate leading-tight mt-0.5">
                 {isEs ? question.question_es : question.question_en}
               </span>
@@ -186,7 +143,7 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
   return (
     <aside
       ref={panelRef}
-      className={`fixed sm:absolute top-14 sm:top-20 landscape:top-12 bottom-2 sm:bottom-6 landscape:bottom-2 right-2 sm:right-6 landscape:right-2 w-[calc(100vw-16px)] sm:w-[420px] landscape:w-[320px] sm:landscape:w-[350px] md:landscape:w-[380px] max-h-[calc(100dvh-4rem)] landscape:max-h-[calc(100dvh-3.2rem)] bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl sm:rounded-3xl shadow-2xl p-3 sm:p-4 landscape:p-2.5 text-slate-100 ring-1 ring-amber-400/20 duration-300 flex flex-col min-h-0 select-text transition-all ${
+      className={`fixed sm:absolute top-14 sm:top-18 landscape:top-12 bottom-2 sm:bottom-4 landscape:bottom-2 right-2 sm:right-4 landscape:right-2 w-[calc(100vw-16px)] sm:w-[410px] landscape:w-[320px] sm:landscape:w-[350px] md:landscape:w-[370px] max-h-[calc(100dvh-4rem)] landscape:max-h-[calc(100dvh-3.2rem)] bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl sm:rounded-3xl shadow-2xl p-2.5 sm:p-3 landscape:p-2 text-slate-100 ring-1 ring-amber-400/20 duration-300 flex flex-col min-h-0 select-text transition-all ${
         isBehind
           ? 'z-20 opacity-20 pointer-events-none scale-95'
           : 'z-40 opacity-100 pointer-events-auto scale-100 animate-in slide-in-from-right'
@@ -195,30 +152,35 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
       aria-label="Panel de Trivia"
     >
       {/* 1. TOP PINNED SECTION (Header & Live Score Counter - never scrolls away) */}
-      <div className="shrink-0 space-y-2 sm:space-y-3 landscape:space-y-1.5 pb-2 sm:pb-3 landscape:pb-1.5 border-b border-slate-800">
+      <div className="shrink-0 space-y-1.5 pb-2 landscape:pb-1 border-b border-slate-800">
         {/* Top Header: Title, Category back button, Minimize, Exit to Explore */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 landscape:w-7 landscape:h-7 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 font-black flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
-              <Trophy className="w-4 h-4 sm:w-5 sm:h-5 landscape:w-3.5 landscape:h-3.5 text-slate-950" />
+        <div className="flex items-start justify-between gap-1.5">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 landscape:w-6 landscape:h-6 rounded-lg bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 font-black flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
+              <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
             </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[9px] sm:text-[10px] font-mono font-bold uppercase px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                  {isEs ? 'Trivia Cartográfica' : 'Map Trivia'}
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                  {isEs ? 'Modo Trivia' : 'Trivia Mode'}
                 </span>
+                {isSessionActive && (
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-slate-800 text-sky-300 border border-slate-700 truncate max-w-[140px]">
+                    {activeContinent ? (isEs ? activeContinent.name_es : activeContinent.name_en) : ''}
+                  </span>
+                )}
                 {(stats?.currentStreak ?? 0) >= 2 && (
-                  <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center gap-1">
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center gap-1">
                     <Flame className="w-3 h-3 text-orange-400 fill-orange-400" />
                     <span>{stats?.currentStreak ?? 0} 🔥</span>
                   </span>
                 )}
               </div>
-              <h2 className="text-xs sm:text-base landscape:text-xs font-extrabold text-white mt-0.5">
-                {currentFlavor === null
+              <h2 className="text-xs sm:text-sm landscape:text-xs font-extrabold text-white mt-0.5 truncate">
+                {!isSessionActive
                   ? isEs
-                    ? 'Selección de Categoría'
-                    : 'Category Selection'
+                    ? 'Configuración de la Trivia'
+                    : 'Trivia Setup'
                   : isEs
                   ? 'Localiza en el Mapa'
                   : 'Locate on the Map'}
@@ -226,25 +188,25 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
-            {currentFlavor !== null && (
+          <div className="flex items-center gap-1 shrink-0">
+            {isSessionActive && (
               <button
                 type="button"
                 onClick={onReturnToCategories}
-                title={isEs ? 'Volver al menú de categorías' : 'Return to categories'}
-                className="text-xs font-semibold text-slate-300 hover:text-white px-2 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 transition-colors border border-slate-700 flex items-center gap-1"
+                title={isEs ? 'Cambiar continente o tema' : 'Change continent or topic'}
+                className="text-[11px] font-semibold text-slate-300 hover:text-white px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 transition-colors border border-slate-700 flex items-center gap-1"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline landscape:hidden md:landscape:inline">{isEs ? 'Categorías' : 'Categories'}</span>
+                <ArrowLeft className="w-3 h-3" />
+                <span className="hidden sm:inline landscape:hidden md:landscape:inline">{isEs ? 'Tema' : 'Topic'}</span>
               </button>
             )}
 
-            {/* Minimize Toggle (Collapses to small pill so user can see 100% of map) */}
+            {/* Minimize Toggle */}
             <button
               type="button"
               onClick={() => setIsCollapsed(true)}
               title={isEs ? 'Minimizar panel (ver mapa completo)' : 'Minimize panel'}
-              className="p-1 sm:p-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors"
+              className="p-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors"
             >
               <Minimize2 className="w-3.5 h-3.5" />
             </button>
@@ -253,137 +215,254 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
               type="button"
               onClick={onCloseToExplore}
               title={isEs ? 'Cambiar al modo Explorar' : 'Switch to Explore mode'}
-              className="text-xs font-bold text-slate-400 hover:text-white px-2 sm:px-2.5 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 transition-colors border border-slate-700"
+              className="text-[11px] font-bold text-slate-400 hover:text-white px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 transition-colors border border-slate-700"
             >
               {isEs ? 'Explorar' : 'Explore'}
             </button>
           </div>
         </div>
 
-        {/* VISIBLE LIVE SCORE COUNTER */}
-        <div className="bg-slate-950/70 border border-slate-800 rounded-xl sm:rounded-2xl p-2 sm:p-3 landscape:p-1.5 flex items-center justify-between shadow-inner">
-          <div className="flex items-center gap-2 sm:gap-3 landscape:gap-2">
-            <div className="flex flex-col">
-              <span className="text-[9px] sm:text-[10px] uppercase font-mono tracking-wider text-slate-400 leading-none">
-                {isEs ? 'Puntos' : 'Score'}
-              </span>
-              <span className="text-base sm:text-xl landscape:text-sm font-black text-amber-400 leading-tight">
-                {formatPoints(stats?.totalScore)}{' '}
-                <span className="text-[10px] sm:text-xs text-slate-500 font-semibold">
-                  / {stats?.totalAnswered ?? 0}
+        {/* VISIBLE LIVE SCORE COUNTER (WHEN PLAYING ACTIVE SESSION) */}
+        {isSessionActive && (
+          <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-1.5 sm:p-2 flex items-center justify-between shadow-inner">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex flex-col">
+                <span className="text-[9px] uppercase font-mono tracking-wider text-slate-400 leading-none">
+                  {isEs ? 'Puntos' : 'Score'}
                 </span>
-              </span>
+                <span className="text-sm sm:text-base font-black text-amber-400 leading-tight">
+                  {formatPoints(stats?.totalScore)}{' '}
+                  <span className="text-[10px] text-slate-500 font-semibold">
+                    / {stats?.totalAnswered ?? 0}
+                  </span>
+                </span>
+              </div>
+
+              <div className="h-5 w-[1px] bg-slate-800" />
+
+              <div className="flex flex-col">
+                <span className="text-[9px] uppercase font-mono tracking-wider text-slate-400 leading-none">
+                  {isEs ? '1er Int.' : '1st Att.'}
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-emerald-400 leading-tight">
+                  {stats?.perfectFirstAttempts ?? 0}
+                </span>
+              </div>
+
+              <div className="h-5 w-[1px] bg-slate-800" />
+
+              <div className="flex flex-col">
+                <span className="text-[9px] uppercase font-mono tracking-wider text-slate-400 leading-none">
+                  {isEs ? 'Racha' : 'Streak'}
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-orange-400 leading-tight flex items-center gap-1">
+                  {stats?.currentStreak ?? 0} 🔥
+                </span>
+              </div>
             </div>
 
-            <div className="h-6 sm:h-7 w-[1px] bg-slate-800" />
-
-            <div className="flex flex-col">
-              <span className="text-[9px] sm:text-[10px] uppercase font-mono tracking-wider text-slate-400 leading-none">
-                {isEs ? '1er Int.' : '1st Att.'}
-              </span>
-              <span className="text-sm sm:text-lg landscape:text-xs font-bold text-emerald-400 leading-tight">
-                {stats?.perfectFirstAttempts ?? 0}
-              </span>
-            </div>
-
-            <div className="h-6 sm:h-7 w-[1px] bg-slate-800" />
-
-            <div className="flex flex-col">
-              <span className="text-[9px] sm:text-[10px] uppercase font-mono tracking-wider text-slate-400 leading-none">
-                {isEs ? 'Racha' : 'Streak'}
-              </span>
-              <span className="text-sm sm:text-lg landscape:text-xs font-bold text-orange-400 leading-tight flex items-center gap-1">
-                {stats?.currentStreak ?? 0} 🔥
-              </span>
-            </div>
+            {(stats?.totalAnswered ?? 0) > 0 && (
+              <button
+                type="button"
+                onClick={onResetStats}
+                title={isEs ? 'Reiniciar estadísticas de trivia' : 'Reset score'}
+                className="p-1 rounded-lg bg-slate-800/70 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors border border-slate-700/50"
+              >
+                <RotateCcw className="w-3 h-3" />
+              </button>
+            )}
           </div>
-
-          {(stats?.totalAnswered ?? 0) > 0 && (
-            <button
-              type="button"
-              onClick={onResetStats}
-              title={isEs ? 'Reiniciar estadísticas de trivia' : 'Reset score'}
-              className="p-1 sm:p-1.5 rounded-lg bg-slate-800/70 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors border border-slate-700/50"
-            >
-              <RotateCcw className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
-      {/* 2. SCROLLABLE MIDDLE SECTION (Category Menu or Active Question) */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 py-2 sm:py-3 landscape:py-1.5 pr-1 space-y-2.5 sm:space-y-3.5 landscape:space-y-2 overscroll-contain">
-
+      {/* 2. SCROLLABLE MIDDLE SECTION (Setup Screen or Active Question) */}
+      <div
+        className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 py-1.5 sm:py-2 landscape:py-1 pr-1 space-y-2 overscroll-contain [scrollbar-width:thin]"
+        style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+      >
         {/* =========================================================================
-            STATE 1: MENU DE CATEGORÍAS (NO MUESTRA PREGUNTA ANTES DE SELECCIONAR)
+            STATE 1: SETUP SCREEN (SELECT CONTINENT & TOPIC - ALIGNED WITH REVIEW MODE)
             ========================================================================= */}
-        {currentFlavor === null && (
-          <div className="space-y-3.5 py-1">
-            <div className="text-left space-y-1">
-              <h3 className="text-sm font-bold text-white">
-                {isEs
-                  ? 'Selecciona una categoría para comenzar:'
-                  : 'Select a category to begin:'}
+        {!isSessionActive && (
+          <div className="space-y-2.5">
+            {/* Step 1: Continent Selection */}
+            <div className="text-left space-y-0.5">
+              <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>{isEs ? 'Paso 1: Selecciona un Continente' : 'Step 1: Select a Continent'}</span>
               </h3>
-              <p className="text-xs text-slate-300 leading-relaxed">
+              <p className="text-[10.5px] text-slate-300 leading-snug">
                 {isEs
-                  ? 'No hay opciones escritas. Deberás localizar y pulsar directamente en el mapa la respuesta correcta.'
-                  : 'No written choices. You must locate and click directly on the map to answer.'}
+                  ? 'La trivia generará preguntas exclusivas de este continente.'
+                  : 'Trivia questions will be selected exclusively from this continent.'}
               </p>
             </div>
 
+            {/* Continent selection grid */}
+            <div className="grid grid-cols-2 gap-1.5">
+              {REVIEW_CONTINENT_OPTIONS.map((c) => {
+                const isSelected = selectedContinentId === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => onSelectContinent(c.id)}
+                    className={`p-1.5 sm:p-2 rounded-xl border text-left transition-all flex items-center gap-1.5 ${
+                      isSelected
+                        ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400/30 text-white font-bold'
+                        : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
+                    }`}
+                  >
+                    <span className="text-base shrink-0">{c.icon}</span>
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold truncate">
+                        {isEs ? c.name_es : c.name_en}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Step 2: Topic Selection */}
+            <div className="text-left space-y-0.5 pt-1 border-t border-slate-800">
+              <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+                <Target className="w-3.5 h-3.5 text-amber-400" />
+                <span>{isEs ? 'Paso 2: Selecciona un Tema' : 'Step 2: Select a Topic'}</span>
+              </h3>
+              <p className="text-[10.5px] text-slate-300">
+                {isEs ? '¿Qué desafío cartográfico deseas responder?' : 'Which map challenge do you want to play?'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-1.5">
+              {/* Option: Países */}
+              <button
+                type="button"
+                onClick={() => onSelectFlavor('countries')}
+                className={`p-2 rounded-xl border text-left transition-all flex items-center justify-between ${
+                  selectedFlavor === 'countries'
+                    ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400/30 text-white'
+                    : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center shrink-0">
+                    <Compass className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold">
+                      {isEs ? 'Países' : 'Countries'}
+                    </div>
+                    <div className="text-[9.5px] text-slate-400 leading-tight">
+                      {isEs
+                        ? 'Se nombra un país del continente; encuéntralo y haz clic sobre él.'
+                        : 'A country is named; find and click directly on it.'}
+                    </div>
+                  </div>
+                </div>
+                {selectedFlavor === 'countries' && <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+              </button>
+
+              {/* Option: Capitales */}
+              <button
+                type="button"
+                onClick={() => onSelectFlavor('capitals')}
+                className={`p-2 rounded-xl border text-left transition-all flex items-center justify-between ${
+                  selectedFlavor === 'capitals'
+                    ? 'bg-sky-500/20 border-sky-400 ring-2 ring-sky-400/30 text-white'
+                    : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-sky-400/20 text-sky-300 flex items-center justify-center shrink-0">
+                    <Landmark className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold">
+                      {isEs ? 'Capitales' : 'Capitals'}
+                    </div>
+                    <div className="text-[9.5px] text-slate-400 leading-tight">
+                      {isEs
+                        ? 'Se da la capital; identifica y pulsa el país correspondiente.'
+                        : 'Given a capital; identify and click its corresponding country.'}
+                    </div>
+                  </div>
+                </div>
+                {selectedFlavor === 'capitals' && <CheckCircle2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />}
+              </button>
+
+              {/* Option: Banderas */}
+              <button
+                type="button"
+                onClick={() => onSelectFlavor('flags')}
+                className={`p-2 rounded-xl border text-left transition-all flex items-center justify-between ${
+                  selectedFlavor === 'flags'
+                    ? 'bg-rose-500/20 border-rose-400 ring-2 ring-rose-400/30 text-white'
+                    : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-rose-400/20 text-rose-300 flex items-center justify-center shrink-0">
+                    <Flag className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold">
+                      {isEs ? 'Banderas' : 'Flags'}
+                    </div>
+                    <div className="text-[9.5px] text-slate-400 leading-tight">
+                      {isEs
+                        ? 'Observa la bandera oficial e identifica el país en el mapa.'
+                        : 'View the official flag and identify the country on the map.'}
+                    </div>
+                  </div>
+                </div>
+                {selectedFlavor === 'flags' && <CheckCircle2 className="w-3.5 h-3.5 text-rose-400 shrink-0" />}
+              </button>
+            </div>
+
             {/* Scoring rules info box */}
-            <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-200/90 space-y-1">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[10.5px] text-amber-200/90 space-y-1">
               <div className="font-bold text-amber-300 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <Sparkles className="w-3 h-3 text-amber-400" />
                 <span>{isEs ? 'Sistema de Puntos y Pistas:' : 'Scoring & Hints System:'}</span>
               </div>
-              <ul className="space-y-0.5 list-disc list-inside text-slate-300">
+              <ul className="space-y-0.5 list-disc list-inside text-slate-300 text-[10px]">
                 <li>
                   <strong className="text-emerald-300">1er Intento:</strong>{' '}
-                  {isEs ? '1.0 punto (sin pistas)' : '1.0 point (no hints)'}
+                  {isEs ? '1.0 punto (sin pistas)' : '1.0 pt (no hints)'}
                 </li>
                 <li>
                   <strong className="text-yellow-300">2do Intento:</strong>{' '}
-                  {isEs ? '0.5 punto (+ Pista 1)' : '0.5 point (+ Hint 1)'}
+                  {isEs ? '0.5 punto (+ Pista 1)' : '0.5 pt (+ Hint 1)'}
                 </li>
                 <li>
                   <strong className="text-orange-300">3er Intento:</strong>{' '}
-                  {isEs ? '0.25 punto (+ Pista 2)' : '0.25 point (+ Hint 2)'}
+                  {isEs ? '0.25 punto (+ Pista 2)' : '0.25 pt (+ Hint 2)'}
                 </li>
                 <li>
                   <strong className="text-rose-300">4to Intento:</strong>{' '}
-                  {isEs ? '0 puntos (el programa te lleva y muestra la respuesta)' : '0 points (program navigates to answer)'}
+                  {isEs ? '0 puntos (el mapa te guía a la respuesta)' : '0 pts (map flies to answer)'}
                 </li>
               </ul>
             </div>
 
-            {/* 4 Category Selection Cards */}
-            <div className="grid grid-cols-1 landscape:grid-cols-2 sm:landscape:grid-cols-1 gap-2 landscape:gap-1.5">
-              {categoryCards.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => onSelectFlavor(cat.id)}
-                  className={`w-full text-left p-2.5 sm:p-3.5 landscape:p-2 rounded-xl sm:rounded-2xl bg-gradient-to-r ${cat.colorClasses} border ${cat.borderClasses} transition-all active:scale-[0.99] flex items-center justify-between group shadow-lg`}
-                >
-                  <div className="flex items-center gap-2.5 sm:gap-3 landscape:gap-2 min-w-0">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 landscape:w-7 landscape:h-7 rounded-lg sm:rounded-xl bg-slate-900/90 border border-slate-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      {cat.icon}
-                    </div>
-                    <div className="min-w-0">
-                      <h4 className="text-xs sm:text-sm font-extrabold text-white group-hover:text-amber-300 transition-colors">
-                        {isEs ? cat.title_es : cat.title_en}
-                      </h4>
-                      <p className="text-[10px] sm:text-[11px] text-slate-300 line-clamp-1 mt-0.5">
-                        {isEs ? cat.desc_es : cat.desc_en}
-                      </p>
-                    </div>
-                  </div>
-
-                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 group-hover:text-white group-hover:translate-x-1 transition-all shrink-0 ml-1.5" />
-                </button>
-              ))}
+            {/* Start Button - smaller and compact */}
+            <div className="pt-1">
+              <button
+                type="button"
+                disabled={!selectedContinentId || !selectedFlavor}
+                onClick={onStartTrivia}
+                className={`w-full py-2 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 shadow-md transition-all ${
+                  selectedContinentId && selectedFlavor
+                    ? 'bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 text-slate-950 hover:brightness-110 shadow-amber-500/25 active:scale-95 cursor-pointer'
+                    : 'bg-slate-800 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60'
+                }`}
+              >
+                <Shuffle className="w-3.5 h-3.5" />
+                <span>{isEs ? 'Comenzar Desafío de Trivia' : 'Start Trivia Challenge'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         )}
@@ -391,32 +470,29 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
         {/* =========================================================================
             STATE 2: PREGUNTA ACTIVA (SIN OPCIONES ESCRITAS - SOLO CLICK EN MAPA)
             ========================================================================= */}
-        {currentFlavor !== null && question && (
-          <div className="space-y-2.5 sm:space-y-3.5 landscape:space-y-2">
+        {isSessionActive && (
+          <div className="space-y-2 sm:space-y-2.5">
             {/* Category Pill Indicator & Attempts Badge */}
             <div className="flex items-center justify-between">
-              <span className="text-[10px] sm:text-[11px] font-mono uppercase text-amber-400 font-bold flex items-center gap-1.5">
-                {currentFlavor === 'continents' && <Globe2 className="w-3.5 h-3.5" />}
-                {currentFlavor === 'countries' && <Compass className="w-3.5 h-3.5" />}
-                {currentFlavor === 'capitals' && <Landmark className="w-3.5 h-3.5" />}
-                {currentFlavor === 'flags' && <Flag className="w-3.5 h-3.5" />}
+              <span className="text-[10px] font-mono uppercase text-amber-400 font-bold flex items-center gap-1.5">
+                {selectedFlavor === 'countries' && <Compass className="w-3.5 h-3.5" />}
+                {selectedFlavor === 'capitals' && <Landmark className="w-3.5 h-3.5" />}
+                {selectedFlavor === 'flags' && <Flag className="w-3.5 h-3.5" />}
                 <span>
                   {isEs
-                    ? currentFlavor === 'continents'
-                      ? 'Continentes'
-                      : currentFlavor === 'countries'
+                    ? selectedFlavor === 'countries'
                       ? 'Países'
-                      : currentFlavor === 'capitals'
+                      : selectedFlavor === 'capitals'
                       ? 'Capitales'
                       : 'Banderas'
-                    : currentFlavor}
+                    : selectedFlavor}
                 </span>
               </span>
 
               {/* Attempt Counter & Value */}
               {!isAnswered ? (
                 <span
-                  className={`text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                  className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border ${
                     currentAttempt === 1
                       ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                       : currentAttempt === 2
@@ -436,30 +512,32 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
                     : '0 pt'}
                 </span>
               ) : (
-                <span className="text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
                   {isEs ? 'Respondida' : 'Completed'}
                 </span>
               )}
             </div>
 
             {/* Question Card */}
-            <div className="bg-gradient-to-b from-slate-800/80 to-slate-900/90 border border-slate-700/90 rounded-xl sm:rounded-2xl p-3 sm:p-4 landscape:p-2.5 space-y-2 sm:space-y-3 landscape:space-y-1.5 shadow-lg">
-              <div className="space-y-1">
-                <h3 className="text-sm sm:text-base md:text-lg font-black text-white leading-snug">
+            <div className="bg-gradient-to-b from-slate-800/80 to-slate-900/90 border border-slate-700/90 rounded-2xl p-2.5 sm:p-3 space-y-2 shadow-lg">
+              <div className="space-y-0.5">
+                <h3 className="text-xs sm:text-sm font-black text-white leading-snug">
                   {isEs ? question.question_es : question.question_en}
                 </h3>
               </div>
 
               {/* Special Visual: National Flag for Flags Flavor */}
-              {currentFlavor === 'flags' && question.flagUrl && (
-                <div className="flex flex-col items-center justify-center p-2 sm:p-3 landscape:p-1.5 rounded-xl sm:rounded-2xl bg-slate-950/90 border border-slate-800 shadow-inner">
-                  <img
-                    src={question.flagUrl}
-                    alt="Bandera nacional para identificar"
-                    className="w-28 h-18 sm:w-36 sm:h-24 landscape:w-24 landscape:h-16 object-cover rounded-xl shadow-2xl ring-2 ring-white/10 border border-slate-700"
-                    loading="eager"
-                  />
-                  <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium mt-1.5">
+              {selectedFlavor === 'flags' && question.flagUrl && (
+                <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-slate-950/90 border border-slate-800 shadow-inner">
+                  <div className="w-full flex items-center justify-center bg-black/50 rounded-xl p-1.5 border border-slate-800/90 shadow-2xl overflow-hidden">
+                    <img
+                      src={question.flagUrl.replace('/w160/', '/w640/')}
+                      alt="Bandera nacional para identificar"
+                      className="w-full max-w-[260px] sm:max-w-[300px] h-32 sm:h-40 landscape:h-24 object-contain rounded-lg shadow-2xl ring-1 ring-white/15"
+                      loading="eager"
+                    />
+                  </div>
+                  <span className="text-[9.5px] text-slate-400 font-medium mt-1 text-center">
                     {isEs
                       ? 'Busca y pulsa este país directamente en el mapa'
                       : 'Find and tap this country directly on the map'}
@@ -468,14 +546,14 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
               )}
 
               {/* Special Clue: Capital Name Highlight for Capitals Flavor */}
-              {currentFlavor === 'capitals' && question.capital_es && (
-                <div className="flex items-center gap-2 sm:gap-2.5 p-2 sm:p-3 landscape:p-1.5 rounded-xl sm:rounded-2xl bg-sky-500/10 border border-sky-500/30 text-sky-200">
-                  <Landmark className="w-4 h-4 sm:w-5 sm:h-5 text-sky-400 shrink-0" />
+              {selectedFlavor === 'capitals' && question.capital_es && (
+                <div className="flex items-center gap-2 p-2 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-200">
+                  <Landmark className="w-4 h-4 text-sky-400 shrink-0" />
                   <div>
-                    <span className="text-[9px] sm:text-[10px] uppercase font-mono tracking-wider text-sky-300 block">
+                    <span className="text-[9px] uppercase font-mono tracking-wider text-sky-300 block">
                       {isEs ? 'Capital a ubicar' : 'Capital to locate'}
                     </span>
-                    <strong className="text-sm sm:text-base text-white">
+                    <strong className="text-sm sm:text-base text-white font-extrabold">
                       {isEs ? question.capital_es : question.capital_en}
                     </strong>
                   </div>
@@ -483,28 +561,28 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
               )}
 
               {/* Instructions banner: NO written alternatives */}
-              <div className="p-2 sm:p-2.5 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center gap-2 text-xs text-slate-300">
+              <div className="py-1 px-2 rounded-lg bg-slate-950/60 border border-slate-800/80 flex items-center gap-1.5 text-[10px] text-slate-300">
                 <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0 animate-bounce" />
-                <span className="text-[11px] sm:text-xs">
+                <span className="leading-tight">
                   {isEs
-                    ? 'Haz clic directamente sobre el mapa mundi para enviar tu respuesta.'
-                    : 'Click directly on the world map to submit your answer.'}
+                    ? 'Haz clic directamente sobre el mapa para enviar tu respuesta.'
+                    : 'Click directly on the map to submit your answer.'}
                 </span>
               </div>
             </div>
 
             {/* WRONG GUESS NOTIFICATION WITH FEEDBACK */}
             {!isAnswered && lastWrongGuessName && (
-              <div className="p-3 rounded-2xl bg-rose-950/70 border border-rose-500/50 text-xs text-rose-200 space-y-1 animate-in fade-in">
+              <div className="p-2 sm:p-2.5 rounded-xl bg-rose-950/70 border border-rose-500/50 text-[11px] text-rose-200 space-y-0.5 animate-in fade-in">
                 <div className="flex items-center gap-1.5 font-bold text-rose-300">
-                  <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <XCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
                   <span>
                     {isEs
                       ? `Has pulsado "${lastWrongGuessName}". No es la respuesta correcta.`
-                      : `You clicked "${lastWrongGuessName}". That is not correct.`}
+                      : `You clicked "${lastWrongGuessName}". Not correct.`}
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-300">
+                <p className="text-[10px] text-slate-300">
                   {isEs
                     ? '¡No te desanimes! Revisa la pista a continuación y prueba de nuevo.'
                     : 'Check the hint below and try again on the map.'}
@@ -514,26 +592,26 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
 
             {/* PROGRESSIVE HINTS ACCORDING TO ATTEMPT */}
             {!isAnswered && currentAttempt >= 2 && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {/* Hint 1 (after 1st wrong attempt) */}
-                <div className="p-3 rounded-2xl bg-amber-950/60 border border-amber-500/50 text-xs text-amber-200 space-y-1 animate-in fade-in">
+                <div className="p-2 sm:p-2.5 rounded-xl bg-amber-950/60 border border-amber-500/50 text-[11px] text-amber-200 space-y-0.5 animate-in fade-in">
                   <div className="flex items-center gap-1.5 font-bold text-amber-300">
-                    <Lightbulb className="w-4 h-4 text-amber-400 shrink-0" />
+                    <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                     <span>{isEs ? 'Pista 1' : 'Hint 1'}</span>
                   </div>
-                  <p className="text-[11px] text-slate-200 leading-relaxed">
+                  <p className="text-[10px] text-slate-200 leading-snug">
                     {isEs ? question.hint1_es : question.hint1_en}
                   </p>
                 </div>
 
                 {/* Hint 2 (after 2nd wrong attempt) */}
                 {currentAttempt >= 3 && (
-                  <div className="p-3 rounded-2xl bg-sky-950/60 border border-sky-500/50 text-xs text-sky-200 space-y-1 animate-in fade-in">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-sky-950/60 border border-sky-500/50 text-[11px] text-sky-200 space-y-0.5 animate-in fade-in">
                     <div className="flex items-center gap-1.5 font-bold text-sky-300">
-                      <Lightbulb className="w-4 h-4 text-sky-400 shrink-0" />
+                      <Lightbulb className="w-3.5 h-3.5 text-sky-400 shrink-0" />
                       <span>{isEs ? 'Pista 2' : 'Hint 2'}</span>
                     </div>
-                    <p className="text-[11px] text-slate-200 leading-relaxed">
+                    <p className="text-[10px] text-slate-200 leading-snug">
                       {isEs ? question.hint2_es : question.hint2_en}
                     </p>
                   </div>
@@ -541,12 +619,12 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
 
                 {/* Hint 3 (after 3rd wrong attempt) */}
                 {currentAttempt >= 4 && (
-                  <div className="p-3 rounded-2xl bg-orange-950/60 border border-orange-500/50 text-xs text-orange-200 space-y-1 animate-in fade-in">
+                  <div className="p-2 sm:p-2.5 rounded-xl bg-orange-950/60 border border-orange-500/50 text-[11px] text-orange-200 space-y-0.5 animate-in fade-in">
                     <div className="flex items-center gap-1.5 font-bold text-orange-300">
-                      <AlertCircle className="w-4 h-4 text-orange-400 shrink-0" />
+                      <AlertCircle className="w-3.5 h-3.5 text-orange-400 shrink-0" />
                       <span>{isEs ? 'Pista 3 (Último intento)' : 'Hint 3 (Final attempt)'}</span>
                     </div>
-                    <p className="text-[11px] text-slate-200 leading-relaxed">
+                    <p className="text-[10px] text-slate-200 leading-snug">
                       {isEs ? question.hint3_es : question.hint3_en}
                     </p>
                   </div>
@@ -557,17 +635,17 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
             {/* RESOLVED STATE: EXPLANATION & POINTS SUMMARY */}
             {isAnswered && (
               <div
-                className={`p-4 rounded-2xl border text-xs leading-relaxed space-y-3 animate-in fade-in duration-300 ${
+                className={`p-2.5 sm:p-3 rounded-2xl border text-xs leading-relaxed space-y-2 animate-in fade-in duration-300 ${
                   isCorrect
                     ? 'bg-emerald-950/80 border-emerald-500/60 text-emerald-200'
                     : 'bg-rose-950/80 border-rose-500/60 text-rose-200'
                 }`}
               >
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <div className="flex items-center gap-2 font-black text-sm text-white">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                  <div className="flex items-center gap-1.5 font-black text-xs sm:text-sm text-white">
                     {isCorrect ? (
                       <>
-                        <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                         <span>
                           {isEs
                             ? currentAttempt === 1
@@ -580,7 +658,7 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
                       </>
                     ) : (
                       <>
-                        <XCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                        <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
                         <span>
                           {isEs
                             ? 'Agotaste los 4 intentos (0 puntos)'
@@ -591,31 +669,31 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
                   </div>
 
                   <span
-                    className={`font-black text-sm px-2.5 py-0.5 rounded-full border ${
+                    className={`font-black text-xs px-2 py-0.5 rounded-full border ${
                       earnedPoints > 0
                         ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                         : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
                     }`}
                   >
-                    +{formatPoints(earnedPoints)} {isEs ? 'pts' : 'pts'}
+                    +{formatPoints(earnedPoints)} pts
                   </span>
                 </div>
 
                 {/* If incorrect (after 4th attempt), program flew to and shows the correct answer */}
                 {!isCorrect && (
-                  <div className="p-2.5 rounded-xl bg-slate-950/90 border border-rose-500/30 text-slate-200 space-y-1">
-                    <div className="flex items-center gap-1.5 text-amber-300 font-bold text-xs">
-                      <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
+                  <div className="p-2 rounded-xl bg-slate-950/90 border border-rose-500/30 text-slate-200 space-y-0.5">
+                    <div className="flex items-center gap-1 text-amber-300 font-bold text-[11px]">
+                      <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                       <span>
                         {isEs
                           ? 'Te hemos llevado en el mapa al lugar correcto:'
                           : 'The map navigated directly to the correct location:'}
                       </span>
                     </div>
-                    <div className="font-extrabold text-white text-sm">
+                    <div className="font-extrabold text-white text-xs sm:text-sm">
                       {isEs ? question.targetName_es : question.targetName_en}
                       {question.capital_es && (
-                        <span className="font-normal text-xs text-slate-300 block">
+                        <span className="font-normal text-[10px] text-slate-300 block">
                           {isEs ? `Capital: ${question.capital_es}` : `Capital: ${question.capital_en}`}
                           {question.targetContinent_es ? ` • ${question.targetContinent_es}` : ''}
                         </span>
@@ -624,7 +702,7 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
                   </div>
                 )}
 
-                <p className="text-slate-300">
+                <p className="text-slate-300 text-[10.5px]">
                   {isEs ? question.explanation_es : question.explanation_en}
                 </p>
 
@@ -633,9 +711,9 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
                   <button
                     type="button"
                     onClick={() => onViewCountryDossier(question.targetId)}
-                    className="text-[11px] font-semibold text-amber-300 hover:text-amber-200 underline flex items-center gap-1"
+                    className="text-[10px] font-semibold text-amber-300 hover:text-amber-200 underline flex items-center gap-1"
                   >
-                    <Info className="w-3.5 h-3.5" />
+                    <Info className="w-3 h-3" />
                     <span>
                       {isEs
                         ? 'Ver expediente geográfico completo'
@@ -645,14 +723,14 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
                 )}
 
                 {/* Next question CTA button */}
-                <div className="pt-1">
+                <div className="pt-0.5">
                   <button
                     type="button"
                     onClick={onNextQuestion}
-                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 transition-all active:scale-95"
+                    className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/25 transition-all active:scale-95"
                   >
                     <span>{isEs ? 'Siguiente Pregunta' : 'Next Question'}</span>
-                    <ArrowRight className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+                    <ArrowRight className="w-3.5 h-3.5 text-slate-950 stroke-[2.5]" />
                   </button>
                 </div>
               </div>
@@ -662,23 +740,23 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
       </div>
 
       {/* 3. PINNED BOTTOM FOOTER */}
-      {currentFlavor !== null && !isAnswered && (
-        <div className="pt-2.5 border-t border-slate-800/80 shrink-0 text-[11px] text-slate-400 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+      {isSessionActive && !isAnswered && (
+        <div className="pt-1.5 sm:pt-2 border-t border-slate-800/80 shrink-0 text-[10px] text-slate-400 flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
             <span>
               {isEs
-                ? 'Toca el continente o país en el mapa para responder.'
-                : 'Click the continent or country on the map.'}
+                ? 'Toca el país en el mapa para responder.'
+                : 'Click the country on the map.'}
             </span>
           </div>
 
           <button
             type="button"
             onClick={onReturnToCategories}
-            className="text-[11px] text-amber-400 hover:text-amber-300 font-semibold underline"
+            className="text-[10px] text-amber-400 hover:text-amber-300 font-semibold underline"
           >
-            {isEs ? 'Cambiar sabor' : 'Change category'}
+            {isEs ? 'Cambiar tema' : 'Change topic'}
           </button>
         </div>
       )}

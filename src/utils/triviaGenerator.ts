@@ -16,18 +16,28 @@ function shuffle<T>(array: T[]): T[] {
 export function generateTriviaQuestion(
   flavor: TriviaFlavor,
   countries: CountryDossierData[],
-  usedQuestionIds: string[] = []
+  usedQuestionIds: string[] = [],
+  continentsFilter?: string[]
 ): TriviaQuestion {
+  // If a continent filter is active, restrict the pool of countries
+  let pool = countries;
+  if (continentsFilter && continentsFilter.length > 0) {
+    const filtered = countries.filter((c) => continentsFilter.includes(c.continent));
+    if (filtered.length > 0) {
+      pool = filtered;
+    }
+  }
+
   switch (flavor) {
     case 'continents':
       return generateContinentsQuestion(usedQuestionIds);
     case 'capitals':
-      return generateCapitalsQuestion(countries, usedQuestionIds);
+      return generateCapitalsQuestion(pool, usedQuestionIds);
     case 'flags':
-      return generateFlagsQuestion(countries, usedQuestionIds);
+      return generateFlagsQuestion(pool, usedQuestionIds);
     case 'countries':
     default:
-      return generateCountriesQuestion(countries, usedQuestionIds);
+      return generateCountriesQuestion(pool, usedQuestionIds);
   }
 }
 

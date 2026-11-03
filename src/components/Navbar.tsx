@@ -1,5 +1,6 @@
 import React from 'react';
 import { AppMode, LensType, Language } from '../types/geography';
+import { PlaySubMode } from '../types/trivia';
 import { Compass, BookOpen, Target, Globe, Layers, Upload, Award, BookMarked, HelpCircle, GraduationCap, Trophy } from 'lucide-react';
 
 interface NavbarProps {
@@ -22,8 +23,8 @@ interface NavbarProps {
   onJumpToContinent: (continent: string) => void;
   isPlayMode?: boolean;
   onOpenPlayGuide?: () => void;
-  playSubMode?: 'explore' | 'trivia';
-  onChangePlaySubMode?: (subMode: 'explore' | 'trivia') => void;
+  playSubMode?: PlaySubMode;
+  onChangePlaySubMode?: (subMode: PlaySubMode) => void;
   triviaScoreText?: string;
 }
 
@@ -60,7 +61,11 @@ export const Navbar: React.FC<NavbarProps> = ({
     return (
       <header className="h-14 sm:h-16 landscape:h-11 sm:landscape:h-12 bg-slate-900/95 border-b border-slate-800 px-2 sm:px-6 landscape:px-2.5 flex items-center justify-between text-slate-100 z-40 select-none backdrop-blur-md safe-pt overflow-x-auto no-scrollbar gap-2">
         {/* Brand */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        <div
+          onClick={onOpenModeSelect || onOpenModulesMenu}
+          className="flex items-center gap-1.5 sm:gap-3 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+          title={isEs ? 'Volver al Menú Principal (Jugar / Aprender)' : 'Return to Main Menu (Play / Learn)'}
+        >
           <div className="w-7 h-7 sm:w-9 sm:h-9 landscape:w-7 landscape:h-7 rounded-xl bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 flex items-center justify-center text-slate-950 font-black shadow-md shadow-amber-500/20 shrink-0">
             <Compass className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-slate-950 stroke-[2.5]" />
           </div>
@@ -72,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Center: Explorar vs Trivia Switcher */}
+        {/* Center: Explorar vs Repaso vs Trivia Switcher */}
         {onChangePlaySubMode && (
           <div className="flex items-center bg-slate-950/80 p-0.5 rounded-xl border border-slate-800 shadow-inner shrink-0">
             <button
@@ -87,6 +92,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Compass className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span>{isEs ? 'Explorar' : 'Explore'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onChangePlaySubMode('review')}
+              title={isEs ? 'Modo Repaso: Continentes, Países, Capitales y Banderas' : 'Review Mode: Continents, Countries, Capitals & Flags'}
+              className={`px-2 sm:px-3.5 landscape:px-2.5 py-0.5 sm:py-1.5 landscape:py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
+                playSubMode === 'review'
+                  ? 'bg-sky-400 text-slate-950 shadow-md font-black ring-1 ring-sky-200'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <BookOpen className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span>{isEs ? 'Repaso' : 'Review'}</span>
             </button>
 
             <button
@@ -183,8 +202,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* 4. Menu Principal */}
           <button
             type="button"
-            onClick={onOpenModulesMenu}
-            title={isEs ? 'Ir al Menú Principal de Módulos' : 'Go to Main Modules Menu'}
+            onClick={onOpenModeSelect || onOpenModulesMenu}
+            title={isEs ? 'Volver al Menú Principal (Jugar / Aprender)' : 'Return to Main Menu (Play / Learn)'}
             className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 text-xs sm:text-sm font-extrabold flex items-center gap-1.5 sm:gap-2 shadow-lg shadow-amber-500/25 active:scale-95 transition-all border border-amber-300/50 shrink-0"
           >
             <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950 stroke-[2.5]" />

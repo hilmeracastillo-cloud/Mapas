@@ -20,7 +20,7 @@ interface ModeSelectionScreenProps {
   currentLang: Language;
   onToggleLang: () => void;
   onSelectLang: (lang: Language) => void;
-  onSelectPlay: (subMode?: 'explore' | 'trivia') => void;
+  onSelectPlay: (subMode?: 'explore' | 'trivia' | 'review') => void;
   onSelectLearn: () => void;
   onOpenTeachers: () => void;
   onReturnToWelcome: () => void;
@@ -188,10 +188,17 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
                   </span>
                 </li>
                 <li className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                  <span>
+                    <strong className="text-sky-300">{isEs ? 'Repaso:' : 'Review:'}</strong>{' '}
+                    {isEs ? 'Continentes y temas a tu ritmo' : 'Continents and topics at your pace'}
+                  </span>
+                </li>
+                <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                   <span>
                     <strong className="text-amber-300">{isEs ? 'Trivia:' : 'Trivia:'}</strong>{' '}
-                    {isEs ? 'Continentes, Países, Capitales y Banderas' : 'Continents, Countries, Capitals & Flags'}
+                    {isEs ? 'Desafíos interactivos y puntuación' : 'Interactive challenges & score'}
                   </span>
                 </li>
               </ul>
@@ -210,11 +217,21 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
 
               <button
                 type="button"
+                onClick={() => onSelectPlay('review')}
+                className="w-full py-2 sm:py-3 landscape:py-1.5 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-sky-400 via-sky-300 to-blue-400 hover:from-sky-300 hover:to-blue-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-sky-500/25 transition-all active:scale-95 border border-sky-300/50"
+              >
+                <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
+                <span>{isEs ? '2. Modo Repaso (Continentes y Temas)' : '2. Review Mode (Continents & Topics)'}</span>
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
+              </button>
+
+              <button
+                type="button"
                 onClick={() => onSelectPlay('trivia')}
                 className="w-full py-2 sm:py-3 landscape:py-1.5 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/25 transition-all active:scale-95 border border-amber-300/50"
               >
                 <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
-                <span>{isEs ? '2. Modo Trivia (Desafíos)' : '2. Trivia Mode (Quiz)'}</span>
+                <span>{isEs ? '3. Modo Trivia (Desafíos)' : '3. Trivia Mode (Quiz)'}</span>
                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
               </button>
             </div>

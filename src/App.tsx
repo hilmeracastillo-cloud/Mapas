@@ -35,7 +35,8 @@ import { Level3ContinentsOceansModal } from './components/Level3ContinentsOceans
 import { Level4ContinentCountriesView } from './components/Level4ContinentCountriesView';
 import { LevelEvaluationEngine } from './components/LevelEvaluationEngine';
 import { PlayTriviaPanel } from './components/PlayTriviaPanel';
-import { PlaySubMode, TriviaFlavor, TriviaQuestion, TriviaStats } from './types/trivia';
+import { PlayReviewPanel, REVIEW_CONTINENT_OPTIONS } from './components/PlayReviewPanel';
+import { PlaySubMode, TriviaFlavor, TriviaQuestion, TriviaStats, ReviewTopic } from './types/trivia';
 import { generateTriviaQuestion } from './utils/triviaGenerator';
 import {
   PedagogicalLevel,
@@ -79,8 +80,17 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('welcome');
   const [isPlayMode, setIsPlayMode] = useState<boolean>(false);
 
-  // Play SubMode: 'explore' (free map & dossiers) vs 'trivia' (quiz with live score)
+  // Play SubMode: 'explore' (free map & dossiers) vs 'trivia' (quiz with live score) vs 'review' (repaso guiado por continente y tema)
   const [playSubMode, setPlaySubMode] = useState<PlaySubMode>('explore');
+
+  // Review / Repaso Mode State
+  const [reviewContinentId, setReviewContinentId] = useState<string | null>(null);
+  const [reviewTopic, setReviewTopic] = useState<ReviewTopic | null>(null);
+  const [reviewQueue, setReviewQueue] = useState<CountryDossierData[]>([]);
+  const [reviewCurrentIndex, setReviewCurrentIndex] = useState<number>(0);
+  const [reviewIsCompleted, setReviewIsCompleted] = useState<boolean>(false);
+
+  const [triviaContinentId, setTriviaContinentId] = useState<string | null>(null);
   const [triviaFlavor, setTriviaFlavor] = useState<TriviaFlavor | null>(null);
   const [triviaAskedIds, setTriviaAskedIds] = useState<Record<TriviaFlavor, string[]>>({
     continents: [],
@@ -748,8 +758,8 @@ export default function App() {
     setCurrentScreen('mode_select');
   };
 
-  // Option 1: "Jugar / Play" (with 'explore' or 'trivia' submode)
-  const handleSelectPlayMode = (subMode: 'explore' | 'trivia' = 'explore') => {
+  // Option 1: "Jugar / Play" (with 'explore', 'trivia', or 'review' submode)
+  const handleSelectPlayMode = (subMode: PlaySubMode = 'explore') => {
     setIsPlayMode(true);
     setPlaySubMode(subMode);
     setCurrentLens('political');
@@ -765,7 +775,8 @@ export default function App() {
     setCurrentScreen('country_map');
 
     if (subMode === 'trivia') {
-      // Show Category Selection Menu first without questions!
+      // Show Continent & Topic Selection Menu first without questions!
+      setTriviaContinentId(null);
       setTriviaFlavor(null);
       setTriviaQuestion(null);
       setTriviaCurrentAttempt(1);
@@ -773,17 +784,147 @@ export default function App() {
       setTriviaIsAnswered(false);
       setTriviaIsCorrect(null);
       setTriviaEarnedPoints(0);
+    } else if (subMode === 'review') {
+      setReviewContinentId(null);
+      setReviewTopic(null);
+      setReviewQueue([]);
+      setReviewCurrentIndex(0);
+      setReviewIsCompleted(false);
     }
   };
 
-  // Select a Trivia Category (Continentes, Países, Capitales, Banderas)
+  // =========================================================================
+  // REVIEW / REPASO MODE HANDLERS (CONTINENT & TOPIC RANDOM EXPLORATION)
+  // =========================================================================
+  const handleSelectReviewContinent = (continentId: string) => {
+    setReviewContinentId(continentId);
+  };
+
+  const handleSelectReviewTopic = (topic: ReviewTopic) => {
+    setReviewTopic(topic);
+  };
+
+  const handleStartReview = () => {
+    if (!reviewContinentId || !reviewTopic) return;
+    const option = REVIEW_CONTINENT_OPTIONS.find((c) => c.id === reviewContinentId);
+    if (!option) return;
+
+    // Filter all countries of this continent
+    const matched = countries.filter((c) => option.continentsFilter.includes(c.continent));
+    if (matched.length === 0) return;
+
+    // Random shuffle (Fisher-Yates)
+    const shuffled = [...matched].sort(() => Math.random() - 0.5);
+
+    setReviewQueue(shuffled);
+    setReviewCurrentIndex(0);
+    setReviewIsCompleted(false);
+
+    // Present first country
+    const firstCountry = shuffled[0];
+    const coords = (reviewTopic === 'capitals' && firstCountry.capital_coords)
+      ? firstCountry.capital_coords
+      : firstCountry.center_coords;
+
+    setFlyToCoords([...coords]);
+    setFlyToZoom(firstCountry.zoom_level || 5);
+    setHighlightedIso2(firstCountry.iso2);
+  };
+
+  const handleNextReviewCountry = () => {
+    if (reviewQueue.length === 0) return;
+
+    if (reviewCurrentIndex < reviewQueue.length - 1) {
+      const nextIndex = reviewCurrentIndex + 1;
+      setReviewCurrentIndex(nextIndex);
+      const nextCountry = reviewQueue[nextIndex];
+      const coords = (reviewTopic === 'capitals' && nextCountry.capital_coords)
+        ? nextCountry.capital_coords
+        : nextCountry.center_coords;
+
+      setFlyToCoords([...coords]);
+      setFlyToZoom(nextCountry.zoom_level || 5);
+      setHighlightedIso2(nextCountry.iso2);
+    } else {
+      setReviewIsCompleted(true);
+      setHighlightedIso2(null);
+    }
+  };
+
+  const handlePreviousReviewCountry = () => {
+    if (reviewQueue.length === 0 || reviewCurrentIndex <= 0) return;
+
+    const prevIndex = reviewCurrentIndex - 1;
+    setReviewCurrentIndex(prevIndex);
+    const prevCountry = reviewQueue[prevIndex];
+    const coords = (reviewTopic === 'capitals' && prevCountry.capital_coords)
+      ? prevCountry.capital_coords
+      : prevCountry.center_coords;
+
+    setFlyToCoords([...coords]);
+    setFlyToZoom(prevCountry.zoom_level || 5);
+    setHighlightedIso2(prevCountry.iso2);
+  };
+
+  const handleRecenterReviewMap = () => {
+    const c = reviewQueue[reviewCurrentIndex];
+    if (!c) return;
+    const coords = (reviewTopic === 'capitals' && c.capital_coords)
+      ? c.capital_coords
+      : c.center_coords;
+    setFlyToCoords([...coords]);
+    setFlyToZoom(c.zoom_level || 5);
+  };
+
+  const handleRestartSameReview = () => {
+    if (reviewQueue.length === 0) return;
+    // New random shuffle
+    const shuffled = [...reviewQueue].sort(() => Math.random() - 0.5);
+    setReviewQueue(shuffled);
+    setReviewCurrentIndex(0);
+    setReviewIsCompleted(false);
+
+    const firstCountry = shuffled[0];
+    const coords = (reviewTopic === 'capitals' && firstCountry.capital_coords)
+      ? firstCountry.capital_coords
+      : firstCountry.center_coords;
+
+    setFlyToCoords([...coords]);
+    setFlyToZoom(firstCountry.zoom_level || 5);
+    setHighlightedIso2(firstCountry.iso2);
+  };
+
+  const handleResetReview = () => {
+    setReviewContinentId(null);
+    setReviewTopic(null);
+    setReviewQueue([]);
+    setReviewCurrentIndex(0);
+    setReviewIsCompleted(false);
+    setHighlightedIso2(null);
+    setFlyToCoords([20, 0]);
+    setFlyToZoom(2);
+  };
+
+  // Select Trivia Continent
+  const handleTriviaSelectContinent = (continentId: string) => {
+    setTriviaContinentId(continentId);
+  };
+
+  // Select Trivia Topic / Flavor (countries, capitals, flags)
   const handleTriviaSelectFlavor = (flavor: TriviaFlavor) => {
     setTriviaFlavor(flavor);
-    const asked = triviaAskedIds[flavor] || [];
-    const q = generateTriviaQuestion(flavor, countries, asked);
+  };
+
+  // Start Trivia Session (once Continent & Topic are chosen)
+  const handleTriviaStartSession = () => {
+    if (!triviaContinentId || !triviaFlavor) return;
+    const option = REVIEW_CONTINENT_OPTIONS.find((c) => c.id === triviaContinentId);
+    const filter = option ? option.continentsFilter : undefined;
+    const asked = triviaAskedIds[triviaFlavor] || [];
+    const q = generateTriviaQuestion(triviaFlavor, countries, asked, filter);
     setTriviaAskedIds((prev) => ({
       ...prev,
-      [flavor]: [...(prev[flavor] || []), q.id],
+      [triviaFlavor]: [...(prev[triviaFlavor] || []), q.id],
     }));
     setTriviaQuestion(q);
     setTriviaCurrentAttempt(1);
@@ -798,9 +939,8 @@ export default function App() {
     setFlyToZoom(2);
   };
 
-  // Return to the Category Selection Menu
+  // Return to the Continent & Topic Setup Menu
   const handleTriviaReturnToCategories = () => {
-    setTriviaFlavor(null);
     setTriviaQuestion(null);
     setTriviaCurrentAttempt(1);
     setTriviaLastWrongGuessName(null);
@@ -817,11 +957,13 @@ export default function App() {
   // Next Trivia Question in current session
   const handleTriviaNextQuestion = () => {
     if (!triviaFlavor) return;
+    const option = REVIEW_CONTINENT_OPTIONS.find((c) => c.id === triviaContinentId);
+    const filter = option ? option.continentsFilter : undefined;
     const asked = triviaAskedIds[triviaFlavor] || [];
-    const newQ = generateTriviaQuestion(triviaFlavor, countries, asked);
+    const newQ = generateTriviaQuestion(triviaFlavor, countries, asked, filter);
     setTriviaAskedIds((prev) => ({
       ...prev,
-      [triviaFlavor!]: [...(prev[triviaFlavor!] || []), newQ.id],
+      [triviaFlavor]: [...(prev[triviaFlavor] || []), newQ.id],
     }));
     setTriviaQuestion(newQ);
     setTriviaCurrentAttempt(1);
@@ -1067,6 +1209,12 @@ export default function App() {
                 setTriviaIsAnswered(false);
                 setTriviaIsCorrect(null);
                 setTriviaEarnedPoints(0);
+              } else if (sub === 'review') {
+                setReviewContinentId(null);
+                setReviewTopic(null);
+                setReviewQueue([]);
+                setReviewCurrentIndex(0);
+                setReviewIsCompleted(false);
               }
             }}
             triviaScoreText={
@@ -1111,6 +1259,10 @@ export default function App() {
             }}
             onOpenModeSelect={() => {
               setIsPlayMode(false);
+              setSelectedCountry(null);
+              setHighlightedIso2(null);
+              setShakeIso2(null);
+              setActiveFeatureBadge(null);
               setCurrentScreen('mode_select');
             }}
             onOpenPlayGuide={() => setIsPlayGuideOpen(true)}
@@ -1139,6 +1291,8 @@ export default function App() {
               onSelectCountry={(c) => {
                 if (isPlayMode && playSubMode === 'trivia') {
                   if (c) handleTriviaAnswer(c.id, c);
+                } else if (isPlayMode && playSubMode === 'review') {
+                  // In review mode, country clicking is disabled; only close up, close out, and pan are allowed
                 } else {
                   handleSelectCountry(c);
                 }
@@ -1156,6 +1310,13 @@ export default function App() {
               isTriviaMode={isPlayMode && playSubMode === 'trivia'}
               triviaFlavor={triviaFlavor}
               onTriviaMapClick={(targetId, country) => handleTriviaAnswer(targetId, country)}
+              isReviewMode={isPlayMode && playSubMode === 'review'}
+              reviewCountry={
+                isPlayMode && playSubMode === 'review' && reviewQueue.length > 0 && !reviewIsCompleted
+                  ? reviewQueue[reviewCurrentIndex] || null
+                  : null
+              }
+              reviewTopic={reviewTopic}
             />
 
 
@@ -1237,8 +1398,11 @@ export default function App() {
         {isPlayMode && playSubMode === 'trivia' && (
           <PlayTriviaPanel
             currentLang={currentLang}
-            currentFlavor={triviaFlavor}
+            selectedContinentId={triviaContinentId}
+            selectedFlavor={triviaFlavor}
+            onSelectContinent={handleTriviaSelectContinent}
             onSelectFlavor={handleTriviaSelectFlavor}
+            onStartTrivia={handleTriviaStartSession}
             onReturnToCategories={handleTriviaReturnToCategories}
             question={triviaQuestion}
             stats={triviaStats}
@@ -1270,9 +1434,40 @@ export default function App() {
           />
         )}
 
+        {/* Play Mode - Review / Repaso Panel */}
+        {isPlayMode && playSubMode === 'review' && (
+          <PlayReviewPanel
+            currentLang={currentLang}
+            selectedContinentId={reviewContinentId}
+            selectedTopic={reviewTopic}
+            onSelectContinent={handleSelectReviewContinent}
+            onSelectTopic={handleSelectReviewTopic}
+            onStartReview={handleStartReview}
+            onResetReview={handleResetReview}
+            onCloseToExplore={() => {
+              setPlaySubMode('explore');
+              setHighlightedIso2(null);
+              setFlyToCoords([20, 0]);
+              setFlyToZoom(2);
+            }}
+            currentCountry={
+              reviewQueue.length > 0 && reviewCurrentIndex < reviewQueue.length
+                ? reviewQueue[reviewCurrentIndex]
+                : null
+            }
+            currentIndex={reviewCurrentIndex}
+            totalCountries={reviewQueue.length}
+            isCompleted={reviewIsCompleted}
+            onNextCountry={handleNextReviewCountry}
+            onPreviousCountry={handlePreviousReviewCountry}
+            onRecenterMap={handleRecenterReviewMap}
+            onRestartSameReview={handleRestartSameReview}
+            isBehind={isDossierOpen}
+          />
+        )}
 
         {/* Country Dossier 440px Drawer (in explore / learn mode, or when requested) */}
-        {currentMode !== 'quest' && (!isPlayMode || playSubMode !== 'trivia' || isDossierOpen) && (
+        {currentMode !== 'quest' && (!isPlayMode || (playSubMode !== 'trivia' && playSubMode !== 'review') || isDossierOpen) && (
           <CountryDossier
             country={selectedCountry}
             isOpen={isDossierOpen}

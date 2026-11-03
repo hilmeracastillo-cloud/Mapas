@@ -1,9 +1,19 @@
 import { ContinentId } from './progression';
 import { CountryDossierData, Language } from './geography';
 
-export type PlaySubMode = 'explore' | 'trivia';
+export type PlaySubMode = 'explore' | 'trivia' | 'review';
 
 export type TriviaFlavor = 'continents' | 'countries' | 'capitals' | 'flags';
+
+export type ReviewTopic = 'countries' | 'capitals' | 'flags';
+
+export interface ReviewContinentOption {
+  id: string;
+  name_es: string;
+  name_en: string;
+  icon: string;
+  continentsFilter: string[]; // e.g. ['Africa'] or ['North America', 'South America']
+}
 
 export interface TriviaQuestion {
   id: string;

@@ -5,7 +5,7 @@ import { PedagogicalLevel, ContinentId } from '../types/progression';
 import { CONTINENTS_DATA, OCEANS_SEAS_DATA } from '../data/continentsOceansData';
 import { getCountrySurroundingWaters } from '../data/surroundingWatersData';
 import { fetchCountriesGeoJson } from '../services/geoJsonService';
-import { TriviaFlavor } from '../types/trivia';
+import { TriviaFlavor, ReviewTopic } from '../types/trivia';
 
 interface LeafletMapProps {
   currentLens: LensType;
@@ -27,6 +27,9 @@ interface LeafletMapProps {
   isTriviaMode?: boolean;
   triviaFlavor?: TriviaFlavor | null;
   onTriviaMapClick?: (targetId: string, country?: CountryDossierData | null) => void;
+  isReviewMode?: boolean;
+  reviewCountry?: CountryDossierData | null;
+  reviewTopic?: ReviewTopic | null;
 }
 
 export const LeafletMap: React.FC<LeafletMapProps> = ({
@@ -49,6 +52,9 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   isTriviaMode = false,
   triviaFlavor = null,
   onTriviaMapClick,
+  isReviewMode = false,
+  reviewCountry = null,
+  reviewTopic = null,
 }) => {
 
 
@@ -451,6 +457,9 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
               // no-op
             }
 
+            if (isReviewMode) {
+              return; // Modo Repaso: Únicamente permitidos zoom in, zoom out y arrastre del mapa
+            }
             if (currentLevel === 3) {
               return; // In Level 3, countries are not presented
             }
@@ -492,6 +501,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     isTriviaMode,
     triviaFlavor,
     onTriviaMapClick,
+    isReviewMode,
   ]);
 
   // Render Custom Vector Markers (Gold Star for Capitals & Semantic Badges for Landforms)
@@ -874,6 +884,56 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       activeMarker.bindPopup(popupContent, { offset: [0, -38] });
       markersGroup.addLayer(activeMarker);
     }
+
+    // =========================================================================
+    // REVIEW / REPASO MODE BEACON MARKER (Visual Callout on Map)
+    // =========================================================================
+    if (isReviewMode && reviewCountry) {
+      const isEs = currentLang === 'es';
+      const cName = isEs ? reviewCountry.name_es : reviewCountry.name_en;
+      const capName = isEs ? reviewCountry.capital_es : reviewCountry.capital_en;
+      const coords = (reviewTopic === 'capitals' && reviewCountry.capital_coords)
+        ? reviewCountry.capital_coords
+        : reviewCountry.center_coords;
+
+      let markerHtml = '';
+      if (reviewTopic === 'capitals') {
+        markerHtml = `
+          <div class="review-map-beacon flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-sky-950/95 border-2 border-sky-400 text-white font-extrabold shadow-2xl backdrop-blur-md ring-4 ring-sky-400/30 animate-pulse">
+            <span class="text-amber-300 text-sm">⭐</span>
+            <span class="whitespace-nowrap text-white font-black text-sm sm:text-base">${capName}</span>
+            <span class="text-[11px] text-sky-300 font-semibold">(${cName})</span>
+          </div>
+        `;
+      } else if (reviewTopic === 'flags') {
+        markerHtml = `
+          <div class="review-map-beacon flex items-center gap-2 p-1.5 pr-3 rounded-2xl bg-slate-900/95 border-2 border-rose-400 text-white font-extrabold shadow-2xl backdrop-blur-md ring-4 ring-rose-400/30">
+            <img src="https://flagcdn.com/w80/${reviewCountry.iso2.toLowerCase()}.png" class="w-8 h-5.5 object-cover rounded shadow border border-slate-700" alt="" />
+            <span class="whitespace-nowrap font-black text-xs sm:text-sm">${cName}</span>
+          </div>
+        `;
+      } else {
+        markerHtml = `
+          <div class="review-map-beacon flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-amber-500 text-slate-950 font-black text-xs sm:text-sm shadow-2xl backdrop-blur-md ring-4 ring-amber-400/40">
+            <span>📍</span>
+            <span class="whitespace-nowrap">${cName}</span>
+          </div>
+        `;
+      }
+
+      const reviewDivIcon = L.divIcon({
+        html: markerHtml,
+        className: 'custom-review-beacon-icon',
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      });
+
+      const beaconMarker = L.marker(coords, {
+        icon: reviewDivIcon,
+        zIndexOffset: 4000,
+      });
+      markersGroup.addLayer(beaconMarker);
+    }
   }, [
     countries,
     selectedCountry,
@@ -889,6 +949,9 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     isTriviaMode,
     triviaFlavor,
     onTriviaMapClick,
+    isReviewMode,
+    reviewCountry,
+    reviewTopic,
   ]);
 
 
@@ -896,11 +959,11 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
-    if (!selectedCountry && !highlightedIso2 && !activeFeatureBadge) {
+    if (!selectedCountry && !highlightedIso2 && !activeFeatureBadge && !isReviewMode) {
       map.invalidateSize();
       map.setView([20, 0], 2);
     }
-  }, [currentMode, isPlayMode, selectedCountry, highlightedIso2, activeFeatureBadge]);
+  }, [currentMode, isPlayMode, selectedCountry, highlightedIso2, activeFeatureBadge, isReviewMode]);
 
   // Handle Fly-To Coords & Zoom Changes
   useEffect(() => {
