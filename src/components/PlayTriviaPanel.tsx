@@ -143,7 +143,7 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
   return (
     <aside
       ref={panelRef}
-      className={`fixed sm:absolute top-14 sm:top-18 landscape:top-12 bottom-2 sm:bottom-4 landscape:bottom-2 right-2 sm:right-4 landscape:right-2 w-[calc(100vw-16px)] sm:w-[410px] landscape:w-[320px] sm:landscape:w-[350px] md:landscape:w-[370px] max-h-[calc(100dvh-4rem)] landscape:max-h-[calc(100dvh-3.2rem)] bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl sm:rounded-3xl shadow-2xl p-2.5 sm:p-3 landscape:p-2 text-slate-100 ring-1 ring-amber-400/20 duration-300 flex flex-col min-h-0 select-text transition-all ${
+      className={`fixed sm:absolute top-14 sm:top-18 landscape:top-12 right-2 sm:right-4 landscape:right-2 w-[calc(100vw-16px)] sm:w-[410px] landscape:w-[320px] sm:landscape:w-[350px] md:landscape:w-[370px] h-auto max-h-[calc(100dvh-4.75rem)] sm:max-h-[calc(100dvh-5.5rem)] landscape:max-h-[calc(100dvh-3.2rem)] bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl sm:rounded-3xl shadow-2xl p-2.5 sm:p-3 landscape:p-2 text-slate-100 ring-1 ring-amber-400/20 duration-300 flex flex-col min-h-0 select-text transition-all ${
         isBehind
           ? 'z-20 opacity-20 pointer-events-none scale-95'
           : 'z-40 opacity-100 pointer-events-auto scale-100 animate-in slide-in-from-right'
@@ -721,43 +721,44 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
                     </span>
                   </button>
                 )}
-
-                {/* Next question CTA button */}
-                <div className="pt-0.5">
-                  <button
-                    type="button"
-                    onClick={onNextQuestion}
-                    className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/25 transition-all active:scale-95"
-                  >
-                    <span>{isEs ? 'Siguiente Pregunta' : 'Next Question'}</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-slate-950 stroke-[2.5]" />
-                  </button>
-                </div>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* 3. PINNED BOTTOM FOOTER */}
-      {isSessionActive && !isAnswered && (
-        <div className="pt-1.5 sm:pt-2 border-t border-slate-800/80 shrink-0 text-[10px] text-slate-400 flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
-            <span>
-              {isEs
-                ? 'Toca el país en el mapa para responder.'
-                : 'Click the country on the map.'}
-            </span>
-          </div>
+      {/* 3. PINNED BOTTOM ACTION CONTROLS */}
+      {isSessionActive && (
+        <div className="pt-2 border-t border-slate-800 shrink-0 space-y-1">
+          {isAnswered ? (
+            <button
+              type="button"
+              onClick={onNextQuestion}
+              className="w-full py-2 sm:py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:brightness-110 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30 transition-all active:scale-95 cursor-pointer ring-2 ring-amber-400/50"
+            >
+              <span>{isEs ? 'Siguiente Pregunta' : 'Next Question'}</span>
+              <ArrowRight className="w-4 h-4 text-slate-950 stroke-[2.5]" />
+            </button>
+          ) : (
+            <div className="text-[10px] text-slate-400 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+                <span>
+                  {isEs
+                    ? 'Toca el país en el mapa para responder.'
+                    : 'Click the country on the map.'}
+                </span>
+              </div>
 
-          <button
-            type="button"
-            onClick={onReturnToCategories}
-            className="text-[10px] text-amber-400 hover:text-amber-300 font-semibold underline"
-          >
-            {isEs ? 'Cambiar tema' : 'Change topic'}
-          </button>
+              <button
+                type="button"
+                onClick={onReturnToCategories}
+                className="text-[10px] text-amber-400 hover:text-amber-300 font-semibold underline cursor-pointer"
+              >
+                {isEs ? 'Cambiar tema' : 'Change topic'}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </aside>
