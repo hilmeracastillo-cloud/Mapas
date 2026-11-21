@@ -169,24 +169,17 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
                   {isEs ? 'Jugar / Play' : 'Play / Jugar'}
                 </h2>
                 <span className="text-[11px] sm:text-xs font-semibold text-emerald-400/90 block mt-0.5">
-                  {isEs ? 'Exploración Libre y Desafíos de Trivia' : 'Free Exploration & Trivia Challenges'}
+                  {isEs ? 'Modo Repaso, Desafíos de Trivia y Exploración Libre' : 'Review Mode, Trivia Challenges & Free Exploration'}
                 </span>
               </div>
 
               <p className="text-xs sm:text-sm landscape:text-[11px] text-slate-300 leading-relaxed line-clamp-2 sm:line-clamp-none">
                 {isEs
-                  ? 'Explora libremente el mapa mundial o pon a prueba tus conocimientos con la Trivia interactiva.'
-                  : 'Freely explore the world map or test your knowledge with interactive map Trivia.'}
+                  ? 'Repasa continentes y temas a tu ritmo, compite con la Trivia o explora libremente el mapa mundial.'
+                  : 'Review continents and topics at your own pace, test your knowledge with Trivia, or freely explore the world map.'}
               </p>
 
               <ul className="space-y-1 text-[11px] sm:text-xs text-slate-400 pt-0.5 hidden xs:block">
-                <li className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>
-                    <strong className="text-slate-200">{isEs ? 'Explorar:' : 'Explore:'}</strong>{' '}
-                    {isEs ? 'Navegación libre, capas y fichas' : 'Free map navigation & dossiers'}
-                  </span>
-                </li>
                 <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />
                   <span>
@@ -201,27 +194,24 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
                     {isEs ? 'Desafíos interactivos y puntuación' : 'Interactive challenges & score'}
                   </span>
                 </li>
+                <li className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>
+                    <strong className="text-slate-200">{isEs ? 'Explorar:' : 'Explore:'}</strong>{' '}
+                    {isEs ? 'Navegación libre, capas y fichas' : 'Free map navigation & dossiers'}
+                  </span>
+                </li>
               </ul>
             </div>
 
             <div className="pt-3 sm:pt-6 landscape:pt-2 space-y-1.5 sm:space-y-2.5 landscape:space-y-1.5">
               <button
                 type="button"
-                onClick={() => onSelectPlay('explore')}
-                className="w-full py-2 sm:py-3 landscape:py-1.5 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/25 transition-all active:scale-95"
-              >
-                <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
-                <span>{isEs ? '1. Modo Explorar (Libre)' : '1. Explore Mode (Free)'}</span>
-                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
-              </button>
-
-              <button
-                type="button"
                 onClick={() => onSelectPlay('review')}
                 className="w-full py-2 sm:py-3 landscape:py-1.5 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-sky-400 via-sky-300 to-blue-400 hover:from-sky-300 hover:to-blue-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-sky-500/25 transition-all active:scale-95 border border-sky-300/50"
               >
                 <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
-                <span>{isEs ? '2. Modo Repaso (Continentes y Temas)' : '2. Review Mode (Continents & Topics)'}</span>
+                <span>{isEs ? '1. Modo Repaso (Continentes y Temas)' : '1. Review Mode (Continents & Topics)'}</span>
                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
               </button>
 
@@ -231,7 +221,17 @@ export const ModeSelectionScreen: React.FC<ModeSelectionScreenProps> = ({
                 className="w-full py-2 sm:py-3 landscape:py-1.5 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/25 transition-all active:scale-95 border border-amber-300/50"
               >
                 <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
-                <span>{isEs ? '3. Modo Trivia (Desafíos)' : '3. Trivia Mode (Quiz)'}</span>
+                <span>{isEs ? '2. Modo Trivia (Desafíos)' : '2. Trivia Mode (Quiz)'}</span>
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onSelectPlay('explore')}
+                className="w-full py-2 sm:py-3 landscape:py-1.5 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/25 transition-all active:scale-95"
+              >
+                <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
+                <span>{isEs ? '3. Modo Explorar (Libre)' : '3. Explore Mode (Free)'}</span>
                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-950" />
               </button>
             </div>

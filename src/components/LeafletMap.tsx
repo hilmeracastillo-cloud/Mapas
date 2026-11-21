@@ -6,6 +6,7 @@ import { CONTINENTS_DATA, OCEANS_SEAS_DATA } from '../data/continentsOceansData'
 import { getCountrySurroundingWaters } from '../data/surroundingWatersData';
 import { fetchCountriesGeoJson } from '../services/geoJsonService';
 import { TriviaFlavor, ReviewTopic } from '../types/trivia';
+import { GeoTopicItem } from '../data/polesData';
 
 interface LeafletMapProps {
   currentLens: LensType;
@@ -30,6 +31,12 @@ interface LeafletMapProps {
   isReviewMode?: boolean;
   reviewCountry?: CountryDossierData | null;
   reviewTopic?: ReviewTopic | null;
+  topicItems?: GeoTopicItem[] | null;
+  topicMode?: 'explore' | 'play';
+  selectedTopicItemId?: string | null;
+  foundTopicItemIds?: string[];
+  revealedTopicItemId?: string | null;
+  onClickTopicItem?: (item: GeoTopicItem) => void;
 }
 
 export const LeafletMap: React.FC<LeafletMapProps> = ({
@@ -55,6 +62,12 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   isReviewMode = false,
   reviewCountry = null,
   reviewTopic = null,
+  topicItems = null,
+  topicMode = 'explore',
+  selectedTopicItemId = null,
+  foundTopicItemIds = [],
+  revealedTopicItemId = null,
+  onClickTopicItem,
 }) => {
 
 
@@ -415,8 +428,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         const name = country ? (currentLang === 'es' ? country.name_es : country.name_en) : (feature?.properties?.ADMIN || feature?.properties?.name || 'Country');
         const iso = country?.iso2.toLowerCase() || (feature?.properties?.ISO_A2 || '').toLowerCase();
 
-        // Tooltip: In Trivia mode, hover tooltips are completely disabled so player knowledge is genuinely evaluated
-        if (!isTriviaMode) {
+        // Tooltip: Disabled in Trivia mode and in non-country topic views (Continents, Oceans, Seas, Poles)
+        if (!isTriviaMode && !(topicItems && topicItems.length > 0)) {
           layer.bindTooltip(`<strong>${name}</strong>`, {
             sticky: true,
             direction: 'top',
@@ -460,6 +473,17 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
             if (isReviewMode) {
               return; // Modo Repaso: Únicamente permitidos zoom in, zoom out y arrastre del mapa
             }
+            if (topicItems && topicItems.length > 0) {
+              if (topicItems[0].topic === 'continents' && onClickTopicItem && country?.continent) {
+                const matched = topicItems.find(
+                  (t) => t.id.toLowerCase() === country.continent.toLowerCase()
+                );
+                if (matched) {
+                  onClickTopicItem(matched);
+                }
+              }
+              return;
+            }
             if (currentLevel === 3) {
               return; // In Level 3, countries are not presented
             }
@@ -502,6 +526,8 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     triviaFlavor,
     onTriviaMapClick,
     isReviewMode,
+    topicItems,
+    onClickTopicItem,
   ]);
 
   // Render Custom Vector Markers (Gold Star for Capitals & Semantic Badges for Landforms)
@@ -510,6 +536,85 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     if (!markersGroup) return;
 
     markersGroup.clearLayers();
+
+    // =========================================================================
+    // UNIFIED TOPIC OVERLAY (CONTINENTS, OCEANS, SEAS, POLES) IN EXPLORE OR PLAY
+    // =========================================================================
+    if (topicItems && topicItems.length > 0) {
+      topicItems.forEach((item) => {
+        const name = currentLang === 'es' ? item.name_es : item.name_en;
+        const isSelected = selectedTopicItemId === item.id;
+        const isFound = foundTopicItemIds.includes(item.id);
+        const isRevealed = revealedTopicItemId === item.id;
+
+        let markerHtml = '';
+        if (topicMode === 'explore') {
+          const palette =
+            item.topic === 'oceans'
+              ? isSelected
+                ? 'bg-sky-600 text-white border-white ring-4 ring-sky-400/50 scale-110'
+                : 'bg-slate-900/92 text-white border-sky-400 hover:bg-sky-700'
+              : item.topic === 'seas'
+              ? isSelected
+                ? 'bg-teal-600 text-white border-white ring-4 ring-teal-400/50 scale-110'
+                : 'bg-slate-900/92 text-white border-teal-400 hover:bg-teal-700'
+              : item.topic === 'poles'
+              ? isSelected
+                ? 'bg-indigo-600 text-white border-white ring-4 ring-indigo-400/50 scale-110'
+                : 'bg-slate-900/92 text-white border-indigo-300 hover:bg-indigo-700'
+              : isSelected
+              ? 'bg-emerald-600 text-white border-white ring-4 ring-emerald-400/50 scale-110'
+              : 'bg-slate-900/92 text-white border-emerald-400 hover:bg-emerald-700';
+
+          markerHtml = `
+            <div style="transform: translate(-50%, -50%);" class="px-3 py-1.5 rounded-xl border-2 font-bold text-xs shadow-xl whitespace-nowrap cursor-pointer transition-transform ${palette}">
+              ${name}
+            </div>
+          `;
+        } else {
+          // PLAY MODE: Hide names until found or revealed!
+          if (isRevealed || isFound) {
+            const stateClass = isRevealed
+              ? 'bg-amber-400 text-slate-950 border-white ring-4 ring-amber-400/60 scale-110'
+              : 'bg-emerald-600 text-white border-white';
+            markerHtml = `
+              <div style="transform: translate(-50%, -50%);" class="px-3 py-1.5 rounded-xl border-2 font-extrabold text-xs shadow-xl whitespace-nowrap cursor-pointer transition-transform ${stateClass}">
+                ✓ ${name}
+              </div>
+            `;
+          } else {
+            markerHtml = `
+              <div style="transform: translate(-50%, -50%);" class="w-9 h-9 rounded-full bg-slate-900/95 hover:bg-amber-400 text-amber-300 hover:text-slate-950 border-2 border-amber-400 font-black text-sm shadow-xl flex items-center justify-center cursor-pointer transition-all hover:scale-115">
+                ?
+              </div>
+            `;
+          }
+        }
+
+        const divIcon = L.divIcon({
+          html: markerHtml,
+          className: 'custom-topic-marker-icon',
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        });
+
+        const marker = L.marker(item.coords, {
+          icon: divIcon,
+          zIndexOffset: isSelected || isRevealed ? 3500 : 1200,
+        });
+
+        marker.on('click', (e) => {
+          L.DomEvent.stopPropagation(e);
+          if (onClickTopicItem) {
+            onClickTopicItem(item);
+          }
+        });
+
+        markersGroup.addLayer(marker);
+      });
+
+      return;
+    }
 
     // =========================================================================
     // LEVEL 3: RENDER STRICTLY CONTINENTS, OCEANS & SEAS (NO COUNTRIES PRESENTED)
@@ -952,6 +1057,12 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     isReviewMode,
     reviewCountry,
     reviewTopic,
+    topicItems,
+    topicMode,
+    selectedTopicItemId,
+    foundTopicItemIds,
+    revealedTopicItemId,
+    onClickTopicItem,
   ]);
 
 
@@ -959,11 +1070,11 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
-    if (!selectedCountry && !highlightedIso2 && !activeFeatureBadge && !isReviewMode) {
+    if (!selectedCountry && !highlightedIso2 && !activeFeatureBadge && !isReviewMode && !selectedTopicItemId && !revealedTopicItemId) {
       map.invalidateSize();
       map.setView([20, 0], 2);
     }
-  }, [currentMode, isPlayMode, selectedCountry, highlightedIso2, activeFeatureBadge, isReviewMode]);
+  }, [currentMode, isPlayMode, selectedCountry, highlightedIso2, activeFeatureBadge, isReviewMode, selectedTopicItemId, revealedTopicItemId]);
 
   // Handle Fly-To Coords & Zoom Changes
   useEffect(() => {

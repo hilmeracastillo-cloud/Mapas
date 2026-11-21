@@ -143,7 +143,7 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
   return (
     <aside
       ref={panelRef}
-      className={`fixed sm:absolute top-14 sm:top-18 landscape:top-12 right-2 sm:right-4 landscape:right-2 w-[calc(100vw-16px)] sm:w-[410px] landscape:w-[320px] sm:landscape:w-[350px] md:landscape:w-[370px] h-auto max-h-[calc(100dvh-4.75rem)] sm:max-h-[calc(100dvh-5.5rem)] landscape:max-h-[calc(100dvh-3.2rem)] bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl sm:rounded-3xl shadow-2xl p-2.5 sm:p-3 landscape:p-2 text-slate-100 ring-1 ring-amber-400/20 duration-300 flex flex-col min-h-0 select-text transition-all ${
+      className={`absolute top-2.5 sm:top-4 right-2 sm:right-4 w-[calc(100%-16px)] sm:w-[400px] landscape:w-[320px] sm:landscape:w-[350px] md:landscape:w-[370px] h-auto max-h-[calc(100%-1.25rem)] sm:max-h-[calc(100%-2rem)] bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl sm:rounded-3xl shadow-2xl p-2.5 sm:p-3 landscape:p-2 text-slate-100 ring-1 ring-amber-400/20 duration-300 flex flex-col min-h-0 select-text transition-all ${
         isBehind
           ? 'z-20 opacity-20 pointer-events-none scale-95'
           : 'z-40 opacity-100 pointer-events-auto scale-100 animate-in slide-in-from-right'

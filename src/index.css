@@ -11,6 +11,10 @@
   }
 }
 
+.font-display {
+  font-family: 'Bricolage Grotesque', 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
 /* iOS & Tablet Safe Area Helpers */
 .safe-pb {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
@@ -33,10 +37,13 @@
   box-shadow: none !important;
 }
 
-/* Quitar de raíz cualquier contorno o rectángulo de foco blanco del navegador al seleccionar países */
-*:focus,
-*:focus-visible {
-  outline: none !important;
+/* Accessible focus rings for UI controls; remove only browser box outlines on Leaflet SVG layers */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #0284c7;
+  outline-offset: 2px;
 }
 
 svg,

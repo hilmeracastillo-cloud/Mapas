@@ -82,20 +82,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center bg-slate-950/80 p-0.5 rounded-xl border border-slate-800 shadow-inner shrink-0">
             <button
               type="button"
-              onClick={() => onChangePlaySubMode('explore')}
-              title={isEs ? 'Modo Explorar: Navegación libre y fichas' : 'Explore Mode: Free map navigation'}
-              className={`px-2 sm:px-3.5 landscape:px-2.5 py-0.5 sm:py-1.5 landscape:py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
-                playSubMode === 'explore'
-                  ? 'bg-emerald-500 text-slate-950 shadow-md font-black ring-1 ring-emerald-300'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-              }`}
-            >
-              <Compass className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span>{isEs ? 'Explorar' : 'Explore'}</span>
-            </button>
-
-            <button
-              type="button"
               onClick={() => onChangePlaySubMode('review')}
               title={isEs ? 'Modo Repaso: Continentes, Países, Capitales y Banderas' : 'Review Mode: Continents, Countries, Capitals & Flags'}
               className={`px-2 sm:px-3.5 landscape:px-2.5 py-0.5 sm:py-1.5 landscape:py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
@@ -125,6 +111,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {triviaScoreText}
                 </span>
               )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onChangePlaySubMode('explore')}
+              title={isEs ? 'Modo Explorar: Navegación libre y fichas' : 'Explore Mode: Free map navigation'}
+              className={`px-2 sm:px-3.5 landscape:px-2.5 py-0.5 sm:py-1.5 landscape:py-0.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
+                playSubMode === 'explore'
+                  ? 'bg-emerald-500 text-slate-950 shadow-md font-black ring-1 ring-emerald-300'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <Compass className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span>{isEs ? 'Explorar' : 'Explore'}</span>
             </button>
           </div>
         )}
