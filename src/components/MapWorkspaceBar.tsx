@@ -1,7 +1,7 @@
 import React from 'react';
 import { Language, LensType } from '../types/geography';
 import { ExplorePlayTopic } from '../data/polesData';
-import { ArrowLeft, BookOpen, Trophy } from 'lucide-react';
+import { ArrowLeft, BookOpen, Trophy, Home } from 'lucide-react';
 
 interface MapWorkspaceBarProps {
   currentLang: Language;
@@ -10,6 +10,8 @@ interface MapWorkspaceBarProps {
   currentLens: LensType;
   onChangeLens: (lens: LensType) => void;
   onBack: () => void;
+  onGoHome: () => void;
+  onToggleLang: () => void;
   countryPlayKind?: 'trivia' | 'review';
   onChangeCountryPlayKind?: (kind: 'trivia' | 'review') => void;
   onJumpToContinent?: (continent: string) => void;
@@ -30,6 +32,8 @@ export const MapWorkspaceBar: React.FC<MapWorkspaceBarProps> = ({
   currentLens,
   onChangeLens,
   onBack,
+  onGoHome,
+  onToggleLang,
   countryPlayKind = 'trivia',
   onChangeCountryPlayKind,
   onJumpToContinent,
@@ -39,63 +43,73 @@ export const MapWorkspaceBar: React.FC<MapWorkspaceBarProps> = ({
   const modeLabel = mode === 'explore' ? (isEs ? 'Explorar' : 'Explore') : isEs ? 'Jugar' : 'Play';
 
   return (
-    <div className="bg-slate-50/95 border-b border-slate-200 px-3 sm:px-6 py-2 flex items-center justify-between gap-3 shrink-0 overflow-x-auto no-scrollbar">
-      {/* Left: Back + Current Topic */}
-      <div className="flex items-center gap-3 shrink-0">
+    <header className="bg-slate-950/95 border-b border-slate-800 px-3 sm:px-5 h-12 sm:h-13 flex items-center justify-between gap-2.5 shrink-0 overflow-x-auto no-scrollbar text-white">
+      {/* Left: Home + Back + Active Mode/Topic */}
+      <div className="flex items-center gap-2 shrink-0">
+        <button
+          type="button"
+          onClick={onGoHome}
+          title={isEs ? 'Menú Principal' : 'Main Menu'}
+          aria-label={isEs ? 'Menú Principal' : 'Main Menu'}
+          className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-amber-300 hover:text-amber-200 transition-colors shrink-0 cursor-pointer"
+        >
+          <Home className="w-4 h-4" />
+        </button>
+
         <button
           type="button"
           onClick={onBack}
-          className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-slate-950 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+          className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-200 hover:text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>{isEs ? 'Volver' : 'Back'}</span>
         </button>
 
-        <div className="flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
-          <span className="font-semibold text-slate-500">{modeLabel}</span>
-          <span className="text-slate-300" aria-hidden="true">/</span>
-          <span className="font-display font-bold text-slate-950">{topicLabel}</span>
+        <div className="flex items-center gap-1.5 text-xs sm:text-sm whitespace-nowrap pl-1">
+          <span className="font-semibold text-slate-400">{modeLabel}</span>
+          <span className="text-slate-600" aria-hidden="true">/</span>
+          <span className="font-display font-bold text-white">{topicLabel}</span>
         </div>
       </div>
 
-      {/* Center: Optional Country Play Switcher (Trivia vs Repaso) */}
+      {/* Center: Country Play Mode Toggle (Trivia | Repaso) */}
       {mode === 'play' && topic === 'countries' && onChangeCountryPlayKind && (
-        <div className="flex items-center gap-1 p-1 bg-slate-200/80 rounded-xl shrink-0">
+        <div className="flex items-center gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl shrink-0">
           <button
             type="button"
             onClick={() => onChangeCountryPlayKind('trivia')}
             className={`px-3 py-1 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer ${
               countryPlayKind === 'trivia'
-                ? 'bg-white text-slate-950 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-amber-400 text-slate-950 shadow-xs'
+                : 'text-slate-300 hover:text-white'
             }`}
           >
-            <Trophy className="w-3.5 h-3.5 text-amber-600" />
-            <span>{isEs ? 'Trivia' : 'Trivia'}</span>
+            <Trophy className="w-3.5 h-3.5" />
+            <span>Trivia</span>
           </button>
           <button
             type="button"
             onClick={() => onChangeCountryPlayKind('review')}
             className={`px-3 py-1 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer ${
               countryPlayKind === 'review'
-                ? 'bg-white text-slate-950 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-sky-400 text-slate-950 shadow-xs'
+                : 'text-slate-300 hover:text-white'
             }`}
           >
-            <BookOpen className="w-3.5 h-3.5 text-sky-600" />
+            <BookOpen className="w-3.5 h-3.5" />
             <span>{isEs ? 'Repaso' : 'Review'}</span>
           </button>
         </div>
       )}
 
-      {/* Right: Continent Jump (Explore Countries) + 3-Lens Map Switcher */}
+      {/* Right: Continent Jump + 3-Lens Map Switcher + ES/EN */}
       <div className="flex items-center gap-2 shrink-0">
         {mode === 'explore' && topic === 'countries' && onJumpToContinent && (
           <select
             aria-label={isEs ? 'Ir a un continente' : 'Jump to continent'}
             defaultValue="World"
             onChange={(e) => onJumpToContinent(e.target.value)}
-            className="hidden md:block bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-sky-500 cursor-pointer"
+            className="hidden md:block bg-slate-900 border border-slate-700/80 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-slate-200 focus:outline-none focus:border-sky-400 cursor-pointer"
           >
             <option value="World">{isEs ? 'Todo el mundo' : 'Entire world'}</option>
             <option value="North America">{isEs ? 'América del Norte' : 'North America'}</option>
@@ -107,7 +121,7 @@ export const MapWorkspaceBar: React.FC<MapWorkspaceBarProps> = ({
           </select>
         )}
 
-        <div className="flex items-center gap-1 p-1 bg-slate-200/80 rounded-xl shrink-0">
+        <div className="flex items-center gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl shrink-0">
           {(['political', 'physical', 'satellite'] as LensType[]).map((lens) => {
             const labels: Record<LensType, { es: string; en: string }> = {
               political: { es: 'Político', en: 'Political' },
@@ -120,10 +134,10 @@ export const MapWorkspaceBar: React.FC<MapWorkspaceBarProps> = ({
                 key={lens}
                 type="button"
                 onClick={() => onChangeLens(lens)}
-                className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer ${
+                className={`px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? 'bg-white text-slate-950 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-sky-500 text-white shadow-xs'
+                    : 'text-slate-300 hover:text-white'
                 }`}
               >
                 {isEs ? labels[lens].es : labels[lens].en}
@@ -131,7 +145,15 @@ export const MapWorkspaceBar: React.FC<MapWorkspaceBarProps> = ({
             );
           })}
         </div>
+
+        <button
+          type="button"
+          onClick={onToggleLang}
+          className="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-200 hover:text-white text-xs font-bold whitespace-nowrap shrink-0 cursor-pointer transition-colors"
+        >
+          {isEs ? 'ES / EN' : 'EN / ES'}
+        </button>
       </div>
-    </div>
+    </header>
   );
 };

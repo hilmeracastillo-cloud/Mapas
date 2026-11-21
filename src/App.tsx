@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import {
   LensType,
   Language,
@@ -12,11 +12,11 @@ import {
   GeoTopicItem,
   getItemsForTopic,
 } from './data/polesData';
-import { SimpleTopBar, TopSection } from './components/SimpleTopBar';
-import { HomeScreen } from './components/HomeScreen';
-import { CategoryHubScreen } from './components/CategoryHubScreen';
+import { GameMenuStage, GameMenuView } from './components/GameMenuStage';
 import { MapWorkspaceBar } from './components/MapWorkspaceBar';
-import { LeafletMap } from './components/LeafletMap';
+const LeafletMap = lazy(() =>
+  import('./components/LeafletMap').then((m) => ({ default: m.LeafletMap }))
+);
 import { CountryDossier } from './components/CountryDossier';
 import { TopicExplorePanel } from './components/TopicExplorePanel';
 import { TopicGamePanel } from './components/TopicGamePanel';
@@ -43,8 +43,6 @@ import {
 const STORAGE_KEY_LANG = 'aprendiendo_mundo_lang_v1';
 const STORAGE_KEY_TRIVIA_STATS = 'geomaster_trivia_stats_v2';
 
-type AppView = 'home' | 'explore_hub' | 'play_hub' | 'learn_hub' | 'map_workspace';
-
 function shuffleArray<T>(list: T[]): T[] {
   const arr = [...list];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -69,8 +67,11 @@ export default function App() {
     });
   }, []);
 
-  // Navigation & Workspace State
-  const [currentView, setCurrentView] = useState<AppView>('home');
+  // Navigation & Game Menu State
+  const [inMapWorkspace, setInMapWorkspace] = useState<boolean>(false);
+  const [menuView, setMenuView] = useState<GameMenuView>('main');
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [hasPlayedIntro, setHasPlayedIntro] = useState<boolean>(false);
   const [workspaceMode, setWorkspaceMode] = useState<'explore' | 'play'>('explore');
   const [workspaceTopic, setWorkspaceTopic] = useState<ExplorePlayTopic>('countries');
   const [countryPlayKind, setCountryPlayKind] = useState<'trivia' | 'review'>('trivia');
@@ -196,14 +197,12 @@ export default function App() {
     setFlyToZoom(2);
   }, []);
 
-  // Top Bar Section Navigation
-  const handleNavigateSection = useCallback(
-    (section: TopSection) => {
+  // Game Menu Navigation
+  const handleChangeMenuView = useCallback(
+    (nextView: GameMenuView) => {
       resetMapVisuals('political');
-      if (section === 'home') setCurrentView('home');
-      else if (section === 'explore') setCurrentView('explore_hub');
-      else if (section === 'play') setCurrentView('play_hub');
-      else if (section === 'learn') setCurrentView('learn_hub');
+      setInMapWorkspace(false);
+      setMenuView(nextView);
     },
     [resetMapVisuals]
   );
@@ -234,7 +233,7 @@ export default function App() {
       const preferredLens: LensType =
         topic === 'oceans' || topic === 'seas' || topic === 'poles' ? 'physical' : 'political';
       resetMapVisuals(preferredLens);
-      setCurrentView('map_workspace');
+      setInMapWorkspace(true);
     },
     [resetMapVisuals]
   );
@@ -267,16 +266,16 @@ export default function App() {
         startTopicGame(topic);
       }
 
-      setCurrentView('map_workspace');
+      setInMapWorkspace(true);
     },
     [resetMapVisuals, startTopicGame]
   );
 
   // Active non-country topic items
   const activeTopicItems = useMemo(() => {
-    if (currentView !== 'map_workspace' || workspaceTopic === 'countries') return null;
+    if (!inMapWorkspace || workspaceTopic === 'countries') return null;
     return getItemsForTopic(workspaceTopic);
-  }, [currentView, workspaceTopic]);
+  }, [inMapWorkspace, workspaceTopic]);
 
   const currentGameTarget =
     topicGameQueue.length > 0 && topicGameIndex < topicGameQueue.length
@@ -669,7 +668,7 @@ export default function App() {
       setWorkspaceMode('explore');
       setWorkspaceTopic('countries');
       setCurrentLens(lens);
-      setCurrentView('map_workspace');
+      setInMapWorkspace(true);
       setFlyToCoords([...item.example_coords]);
       setFlyToZoom(item.example_zoom);
       setActiveFeatureBadge({
@@ -690,7 +689,7 @@ export default function App() {
       setWorkspaceMode('explore');
       setWorkspaceTopic('countries');
       setCurrentLens('political');
-      setCurrentView('map_workspace');
+      setInMapWorkspace(true);
       setSelectedCountry(country);
       setIsDossierOpen(true);
       setHighlightedIso2(country.iso2);
@@ -713,92 +712,65 @@ export default function App() {
       setReviewQueue([]);
       setReviewCurrentIndex(0);
       setReviewIsCompleted(false);
-      setCurrentView('map_workspace');
+      setInMapWorkspace(true);
     },
     []
   );
 
-  const activeTopSection: TopSection =
-    currentView === 'home'
-      ? 'home'
-      : currentView === 'learn_hub'
-      ? 'learn'
-      : currentView === 'explore_hub'
-      ? 'explore'
-      : currentView === 'play_hub'
-      ? 'play'
-      : workspaceMode;
-
   const isMapInPlayTrivia =
-    currentView === 'map_workspace' &&
+    inMapWorkspace &&
     workspaceMode === 'play' &&
     (workspaceTopic !== 'countries' || countryPlayKind === 'trivia');
 
   const isMapInReview =
-    currentView === 'map_workspace' &&
+    inMapWorkspace &&
     workspaceMode === 'play' &&
     workspaceTopic === 'countries' &&
     countryPlayKind === 'review';
 
   return (
-    <div className="relative w-screen h-screen flex flex-col bg-[#F7F9FC] text-slate-900 overflow-hidden font-sans">
-      {/* SCREEN 1: PORTADA & MENÚ INICIAL (APRENDIENDO EL MUNDO) */}
-      {currentView === 'home' && (
-        <div className="w-full h-full overflow-y-auto">
-          <HomeScreen
-            currentLang={currentLang}
-            onToggleLang={handleToggleLang}
-            onNavigateSection={handleNavigateSection}
-            onQuickLaunchExplore={handleSelectExploreTopic}
-          />
-        </div>
+    <div className="relative w-screen h-dvh flex flex-col bg-slate-950 text-white overflow-hidden font-sans">
+      {/* GAME TITLE SCREEN & SUBMENUS */}
+      {!inMapWorkspace && (
+        <GameMenuStage
+          menuView={menuView}
+          currentLang={currentLang}
+          countries={countries}
+          soundEnabled={soundEnabled}
+          shouldAnimateIntro={!hasPlayedIntro && menuView === 'main'}
+          onIntroCompleted={() => setHasPlayedIntro(true)}
+          onToggleSound={() => setSoundEnabled((prev) => !prev)}
+          onToggleLang={handleToggleLang}
+          onChangeMenuView={handleChangeMenuView}
+          onSelectExploreTopic={handleSelectExploreTopic}
+          onSelectPlayTopic={handleSelectPlayTopic}
+          onOpenLearnModal={handleOpenLearnModal}
+          onStartLearnEvaluation={handleOpenEvaluation}
+          onOpenCountryOnMap={handleOpenCountryFromLearn}
+          onStartCountryReview={handleStartCountryReviewFromLearn}
+        />
       )}
 
-      {/* SCREEN 2: HUBS DE EXPLORAR, JUGAR O APRENDER */}
-      {(currentView === 'explore_hub' || currentView === 'play_hub' || currentView === 'learn_hub') && (
-        <div className="w-full h-full overflow-y-auto">
-          <CategoryHubScreen
-            section={
-              currentView === 'explore_hub'
-                ? 'explore'
-                : currentView === 'play_hub'
-                ? 'play'
-                : 'learn'
-            }
-            currentLang={currentLang}
-            countries={countries}
-            onToggleLang={handleToggleLang}
-            onNavigateSection={handleNavigateSection}
-            onSelectExploreTopic={handleSelectExploreTopic}
-            onSelectPlayTopic={handleSelectPlayTopic}
-            onOpenLearnModal={handleOpenLearnModal}
-            onStartLearnEvaluation={handleOpenEvaluation}
-            onOpenCountryOnMap={handleOpenCountryFromLearn}
-            onStartCountryReview={handleStartCountryReviewFromLearn}
-          />
-        </div>
-      )}
-
-      {/* SCREEN 3: ESPACIO DE MAPA INTERACTIVO (EXPLORAR O JUGAR) */}
-      {currentView === 'map_workspace' && (
-        <div className="relative w-full h-full flex flex-col overflow-hidden">
-          <SimpleTopBar
-            currentLang={currentLang}
-            activeSection={activeTopSection}
-            onNavigate={handleNavigateSection}
-            onToggleLang={handleToggleLang}
-          />
-
+      {/* INTERACTIVE MAP WORKSPACE (EXPLORAR O JUGAR) */}
+      {inMapWorkspace && (
+        <div className="relative w-full h-full flex flex-col overflow-hidden bg-slate-950">
           <MapWorkspaceBar
             currentLang={currentLang}
             mode={workspaceMode}
             topic={workspaceTopic}
             currentLens={currentLens}
             onChangeLens={setCurrentLens}
+            onGoHome={() => {
+              resetMapVisuals('political');
+              setInMapWorkspace(false);
+              setMenuView('main');
+            }}
             onBack={() => {
               resetMapVisuals('political');
-              setCurrentView(workspaceMode === 'explore' ? 'explore_hub' : 'play_hub');
+              setInMapWorkspace(false);
+              setMenuView(workspaceMode === 'explore' ? 'explore' : 'play');
             }}
+            onToggleLang={handleToggleLang}
             countryPlayKind={countryPlayKind}
             onChangeCountryPlayKind={(kind) => {
               setCountryPlayKind(kind);
@@ -820,46 +792,57 @@ export default function App() {
           />
 
           <main className="relative flex-1 w-full h-full overflow-hidden">
-            <LeafletMap
-              currentLens={currentLens}
-              currentMode="explore"
-              currentLang={currentLang}
-              countries={countries}
-              selectedCountry={selectedCountry}
-              onSelectCountry={(c) => {
-                if (workspaceMode === 'play' && workspaceTopic === 'countries' && countryPlayKind === 'trivia') {
-                  if (c) handleTriviaAnswer(c.id, c);
-                } else if (workspaceMode === 'play' && workspaceTopic === 'countries' && countryPlayKind === 'review') {
-                  // Review mode only allows zoom/pan
-                } else if (workspaceTopic === 'countries') {
-                  handleSelectCountry(c);
-                }
-              }}
-              onFlyToFeature={handleFlyToFeature}
-              flyToCoords={flyToCoords}
-              flyToZoom={flyToZoom}
-              highlightedIso2={highlightedIso2}
-              shakeIso2={shakeIso2}
-              activeFeatureBadge={activeFeatureBadge}
-              currentLevel={4}
-              isPlayMode={workspaceMode === 'play'}
-              isTriviaMode={isMapInPlayTrivia}
-              triviaFlavor={triviaFlavor}
-              onTriviaMapClick={(targetId, country) => handleTriviaAnswer(targetId, country)}
-              isReviewMode={isMapInReview}
-              reviewCountry={
-                isMapInReview && reviewQueue.length > 0 && !reviewIsCompleted
-                  ? reviewQueue[reviewCurrentIndex] || null
-                  : null
+            <Suspense
+              fallback={
+                <div className="w-full h-full bg-slate-950 flex flex-col items-center justify-center gap-3 text-slate-200">
+                  <div className="w-10 h-10 rounded-full border-4 border-sky-400/30 border-t-sky-400 animate-spin" />
+                  <p className="text-sm font-semibold">
+                    {currentLang === 'es' ? 'Cargando mapa mundial...' : 'Loading world map...'}
+                  </p>
+                </div>
               }
-              reviewTopic={reviewTopic}
-              topicItems={activeTopicItems}
-              topicMode={workspaceMode}
-              selectedTopicItemId={selectedTopicItem?.id || null}
-              foundTopicItemIds={topicGameFoundIds}
-              revealedTopicItemId={topicGameRevealedId}
-              onClickTopicItem={handleClickTopicItem}
-            />
+            >
+              <LeafletMap
+                currentLens={currentLens}
+                currentMode="explore"
+                currentLang={currentLang}
+                countries={countries}
+                selectedCountry={selectedCountry}
+                onSelectCountry={(c) => {
+                  if (workspaceMode === 'play' && workspaceTopic === 'countries' && countryPlayKind === 'trivia') {
+                    if (c) handleTriviaAnswer(c.id, c);
+                  } else if (workspaceMode === 'play' && workspaceTopic === 'countries' && countryPlayKind === 'review') {
+                    // Review mode only allows zoom/pan
+                  } else if (workspaceTopic === 'countries') {
+                    handleSelectCountry(c);
+                  }
+                }}
+                onFlyToFeature={handleFlyToFeature}
+                flyToCoords={flyToCoords}
+                flyToZoom={flyToZoom}
+                highlightedIso2={highlightedIso2}
+                shakeIso2={shakeIso2}
+                activeFeatureBadge={activeFeatureBadge}
+                currentLevel={4}
+                isPlayMode={workspaceMode === 'play'}
+                isTriviaMode={isMapInPlayTrivia}
+                triviaFlavor={triviaFlavor}
+                onTriviaMapClick={(targetId, country) => handleTriviaAnswer(targetId, country)}
+                isReviewMode={isMapInReview}
+                reviewCountry={
+                  isMapInReview && reviewQueue.length > 0 && !reviewIsCompleted
+                    ? reviewQueue[reviewCurrentIndex] || null
+                    : null
+                }
+                reviewTopic={reviewTopic}
+                topicItems={activeTopicItems}
+                topicMode={workspaceMode}
+                selectedTopicItemId={selectedTopicItem?.id || null}
+                foundTopicItemIds={topicGameFoundIds}
+                revealedTopicItemId={topicGameRevealedId}
+                onClickTopicItem={handleClickTopicItem}
+              />
+            </Suspense>
 
             {/* Floating Panel: EXPLORAR Continentes / Océanos / Mares / Polos */}
             {workspaceMode === 'explore' && workspaceTopic !== 'countries' && activeTopicItems && (
@@ -900,7 +883,8 @@ export default function App() {
                 onRestart={() => startTopicGame(workspaceTopic)}
                 onBackToPlayMenu={() => {
                   resetMapVisuals('political');
-                  setCurrentView('play_hub');
+                  setInMapWorkspace(false);
+                  setMenuView('play');
                 }}
               />
             )}
@@ -1022,7 +1006,7 @@ export default function App() {
           setWorkspaceMode('explore');
           setWorkspaceTopic('oceans');
           setCurrentLens(lens);
-          setCurrentView('map_workspace');
+          setInMapWorkspace(true);
           setFlyToCoords(coords);
           setFlyToZoom(zoom);
         }}
