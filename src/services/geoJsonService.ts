@@ -26,6 +26,29 @@ export const fetchCountriesGeoJson = (): Promise<any> => {
   return fetchPromise;
 };
 
+let cachedContinentsGeoJson: any = null;
+let continentsFetchPromise: Promise<any> | null = null;
+
+/**
+ * Fetch local pre-dissolved exact vector boundaries for all 7 continents
+ * (Natural Earth 1:50m physical boundaries: Ural Mountains/River, Caucasus, Bosphorus, Suez, Darién).
+ */
+export const fetchContinentsGeoJson = (): Promise<any> => {
+  if (cachedContinentsGeoJson) return Promise.resolve(cachedContinentsGeoJson);
+  if (!continentsFetchPromise) {
+    continentsFetchPromise = fetch('/data/continents.geojson')
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch continents.geojson');
+        return res.json();
+      })
+      .then((data) => {
+        cachedContinentsGeoJson = data;
+        return data;
+      });
+  }
+  return continentsFetchPromise;
+};
+
 export const getCachedGeoJson = () => cachedFullGeoJson || PRESET_REAL_BOUNDARIES;
 
 /**

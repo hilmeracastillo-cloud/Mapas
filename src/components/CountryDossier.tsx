@@ -1,8 +1,9 @@
 import React from 'react';
 import { CountryDossierData, Language, LandformFeature, LensType } from '../types/geography';
-import { X, Globe2, Compass, TrendingUp, Mountain, Landmark, ExternalLink, ShieldCheck, Waves, Anchor } from 'lucide-react';
+import { X, Globe2, Compass, TrendingUp, Mountain, ShieldCheck, Waves, Anchor, Volume2 } from 'lucide-react';
 import { getCountrySurroundingWaters } from '../data/surroundingWatersData';
 import { getProductIcon } from '../utils/productIcons';
+import { speakGeoName } from '../utils/speechService';
 
 interface CountryDossierProps {
   country: CountryDossierData | null;
@@ -32,80 +33,103 @@ export const CountryDossier: React.FC<CountryDossierProps> = ({
 
   return (
     <aside
-      className="absolute top-0 right-0 bottom-0 z-50 w-full landscape:w-[320px] sm:landscape:w-[350px] sm:w-[360px] md:w-[400px] lg:w-[420px] bg-slate-900/98 backdrop-blur-2xl border-l border-slate-700/80 shadow-2xl flex flex-col text-slate-100 transition-transform duration-300 ease-in-out overflow-hidden"
+      className="absolute top-2 right-2 bottom-2 lg:top-3 lg:right-3 lg:bottom-3 z-50 w-[24.5%] min-w-[205px] max-w-[310px] portrait:w-[min(86vw,310px)] bg-slate-900/96 backdrop-blur-xl border border-slate-700/80 rounded-xl lg:rounded-2xl shadow-2xl flex flex-col text-slate-100 transition-transform duration-300 ease-in-out overflow-hidden"
       aria-label="Country Dossier"
     >
-      {/* Dossier Header */}
-      <div className="relative p-3 sm:p-4 landscape:p-2.5 border-b border-slate-800 bg-gradient-to-b from-slate-800/80 to-slate-900/90">
+      {/* Compact Dossier Header */}
+      <div className="relative p-2.5 lg:p-3 border-b border-slate-800 bg-gradient-to-b from-slate-800/80 to-slate-900/90 shrink-0">
         <button
           onClick={onClose}
-          className="absolute top-2.5 sm:top-3.5 right-2.5 sm:right-3.5 p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          className="absolute top-2 right-2 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
           aria-label="Close Dossier"
         >
-          <X className="w-4 h-4 sm:w-5 sm:h-5" />
+          <X className="w-4 h-4" />
         </button>
 
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-2">
           <img
             src={flagUrl}
             alt={`${countryName} flag`}
-            className="w-10 h-7 sm:w-14 sm:h-9 landscape:w-9 landscape:h-6 object-cover rounded shadow border border-slate-600/80 shrink-0"
+            className="w-9 h-6 lg:w-11 lg:h-7 object-cover rounded shadow border border-slate-600/80 shrink-0"
             onError={(e) => {
               (e.target as HTMLElement).style.display = 'none';
             }}
           />
-          <div className="pr-6">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <h2 className="text-sm sm:text-lg landscape:text-sm font-extrabold tracking-tight text-white">{countryName}</h2>
-              <span className="text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40">
+          <div className="pr-6 min-w-0">
+            <div className="flex items-center gap-1 flex-wrap">
+              <h2 className="text-xs lg:text-sm font-extrabold tracking-tight text-white leading-tight truncate">{countryName}</h2>
+              <button
+                type="button"
+                onClick={() => speakGeoName(countryName, currentLang, true)}
+                title={isEs ? 'Escuchar pronunciación del país' : 'Listen to country pronunciation'}
+                aria-label={isEs ? `Escuchar ${countryName}` : `Pronounce ${countryName}`}
+                className="p-0.5 rounded text-amber-300 hover:text-amber-200 hover:bg-slate-700/80 transition-colors shrink-0 cursor-pointer"
+              >
+                <Volume2 className="w-3.5 h-3.5" />
+              </button>
+              <span className="text-[9px] px-1 py-0.2 rounded font-mono font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40 shrink-0">
                 {country.iso3}
               </span>
             </div>
-            <div className="text-[10px] sm:text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+            <div className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5 truncate">
               <Globe2 className="w-3 h-3 text-sky-400 shrink-0" />
-              <span>{continentName}</span>
+              <span className="truncate">{continentName}</span>
               <span>•</span>
-              <span className="font-mono text-emerald-400">${country.gdp_billion}B</span>
+              <span className="font-mono text-emerald-400 shrink-0">${country.gdp_billion}B</span>
             </div>
           </div>
         </div>
 
-        {/* Capital Button with Star */}
-        <div className="mt-2.5 flex items-center justify-between bg-slate-800/80 px-2.5 py-1.5 rounded-lg border border-slate-700">
-          <div className="flex items-center gap-2">
-            <span className="text-amber-400 text-sm">★</span>
-            <div>
-              <span className="text-slate-400 block text-[9px] uppercase font-bold tracking-wider">
-                {isEs ? 'Capital Oficial' : 'Official Capital'}
+        {/* Capital Button with Star & Pronunciation */}
+        <div className="mt-2 flex items-center justify-between gap-1.5 bg-slate-800/80 px-2 py-1 rounded-lg border border-slate-700">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-amber-400 text-xs shrink-0">★</span>
+            <div className="min-w-0">
+              <span className="text-slate-400 block text-[9px] uppercase font-bold tracking-wider leading-none">
+                {isEs ? 'Capital' : 'Capital'}
               </span>
-              <span className="font-semibold text-xs text-slate-100">{capitalName}</span>
+              <span className="font-semibold text-[11px] text-slate-100 truncate block">{capitalName}</span>
             </div>
           </div>
-          <button
-            onClick={() => onFlyToFeature(country.capital_coords, 8)}
-            className="text-[11px] flex items-center gap-1 px-2 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded font-medium border border-amber-400/30 transition-colors"
-          >
-            <Compass className="w-3 h-3" />
-            <span>{isEs ? 'Centrar' : 'Fly To'}</span>
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => speakGeoName(capitalName, currentLang, true)}
+              title={isEs ? 'Escuchar pronunciación de la capital' : 'Listen to capital pronunciation'}
+              aria-label={isEs ? `Escuchar ${capitalName}` : `Pronounce ${capitalName}`}
+              className="p-1 rounded text-sky-300 hover:text-sky-200 hover:bg-slate-700 transition-colors cursor-pointer"
+            >
+              <Volume2 className="w-3 h-3" />
+            </button>
+            <button
+              onClick={() => {
+                speakGeoName(capitalName, currentLang, true);
+                onFlyToFeature(country.capital_coords, 8);
+              }}
+              className="text-[10px] flex items-center gap-1 px-1.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded font-medium border border-amber-400/30 transition-colors shrink-0 cursor-pointer"
+            >
+              <Compass className="w-3 h-3" />
+              <span>{isEs ? 'Ir' : 'Fly'}</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Dossier Scrollable Body */}
-      <div className="flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-3.5 sm:space-y-4 text-xs touch-scroll safe-pb">
+      <div className="flex-1 overflow-y-auto p-2.5 lg:p-3 space-y-2.5 lg:space-y-3 text-[11px] lg:text-xs touch-scroll safe-pb">
         {/* Quick Demographic Metrics */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-slate-800/60 p-2 rounded-lg border border-slate-700/60">
-            <span className="text-[10px] text-slate-400 block font-medium">
+        <div className="grid grid-cols-2 gap-1.5">
+          <div className="bg-slate-800/60 p-1.5 lg:p-2 rounded-lg border border-slate-700/60 min-w-0">
+            <span className="text-[9px] lg:text-[10px] text-slate-400 block font-medium truncate">
               {isEs ? 'Población' : 'Population'}
             </span>
-            <span className="text-xs font-bold text-slate-100 font-mono">{country.population}</span>
+            <span className="text-[11px] font-bold text-slate-100 font-mono truncate block">{country.population}</span>
           </div>
-          <div className="bg-slate-800/60 p-2 rounded-lg border border-slate-700/60">
-            <span className="text-[10px] text-slate-400 block font-medium">
+          <div className="bg-slate-800/60 p-1.5 lg:p-2 rounded-lg border border-slate-700/60 min-w-0">
+            <span className="text-[9px] lg:text-[10px] text-slate-400 block font-medium truncate">
               {isEs ? 'Superficie' : 'Land Area'}
             </span>
-            <span className="text-xs font-bold text-slate-100 font-mono">{country.area_sqkm}</span>
+            <span className="text-[11px] font-bold text-slate-100 font-mono truncate block">{country.area_sqkm}</span>
           </div>
         </div>
 

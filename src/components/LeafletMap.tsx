@@ -4,9 +4,13 @@ import { LensType, AppMode, Language, CountryDossierData, LandformFeature, Seman
 import { PedagogicalLevel, ContinentId } from '../types/progression';
 import { CONTINENTS_DATA, OCEANS_SEAS_DATA } from '../data/continentsOceansData';
 import { getCountrySurroundingWaters } from '../data/surroundingWatersData';
-import { fetchCountriesGeoJson } from '../services/geoJsonService';
+import { fetchCountriesGeoJson, fetchContinentsGeoJson } from '../services/geoJsonService';
 import { TriviaFlavor, ReviewTopic } from '../types/trivia';
 import { GeoTopicItem } from '../data/polesData';
+import {
+  CanonicalContinentId,
+  CONTINENT_VIEW_BOUNDS,
+} from '../utils/continentResolver';
 
 interface LeafletMapProps {
   currentLens: LensType;
@@ -76,9 +80,21 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   const baseTileLayerRef = useRef<L.TileLayer | null>(null);
   const overlayTileLayerRef = useRef<L.TileLayer | null>(null);
   const geoJsonLayerRef = useRef<L.GeoJSON | null>(null);
+  const continentCasingLayerRef = useRef<L.GeoJSON | null>(null);
+  const continentVectorLayerRef = useRef<L.GeoJSON | null>(null);
   const markersLayerGroupRef = useRef<L.LayerGroup | null>(null);
   const [geoData, setGeoData] = useState<any | null>(null);
+  const [continentsGeoData, setContinentsGeoData] = useState<any | null>(null);
   const [isLoadingGeo, setIsLoadingGeo] = useState<boolean>(true);
+
+  const isContinentsTopic = Boolean(
+    topicItems && topicItems.length > 0 && topicItems[0].topic === 'continents'
+  );
+  const activeHighlightedContinentId = isContinentsTopic
+    ? topicMode === 'explore'
+      ? selectedTopicItemId
+      : revealedTopicItemId
+    : null;
 
   // Initialize Leaflet Map
   useEffect(() => {
@@ -92,6 +108,14 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       worldCopyJump: true,
       zoomControl: false,
     });
+
+    // Dedicated panes for pure dissolved vector continent boundaries (dark contrast casing + interactive layer)
+    const casingPane = map.createPane('continentCasingPane');
+    casingPane.style.zIndex = '418';
+    casingPane.style.pointerEvents = 'none';
+
+    const vectorPane = map.createPane('continentVectorPane');
+    vectorPane.style.zIndex = '422';
 
     // Custom positioned zoom control on topleft (prevents overlap with right panel)
     L.control.zoom({ position: 'topleft' }).addTo(map);
@@ -198,23 +222,17 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
 
     let baseTileUrl = '';
     let overlayTileUrl: string | null = null;
-    let attribution = '&copy; <a href="https://www.esri.com">Esri</a>, USGS, NOAA';
+    let attribution = '&copy; <a href="https://www.esri.com">Esri</a>, GEBCO, NOAA, National Geographic';
     let subdomains: string[] | undefined = undefined;
+    let maxNativeZoom: number | undefined = undefined;
 
     if (isTriviaMode) {
-      // IN TRIVIA MODE: NO LABELS ALLOWED (names of countries, capitals, etc. must NOT appear on tiles at ANY zoom level)
-      // We use Esri World_Shaded_Relief and World_Imagery which have 100% ZERO labels and require 0 API keys
-      if (currentLens === 'political') {
-        // Pure shaded topography with coastlines and mountains; vector polygons provide the political sovereign borders
-        baseTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}';
-        overlayTileUrl = null;
-      } else if (currentLens === 'physical') {
-        baseTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}';
-        overlayTileUrl = null;
-      } else if (currentLens === 'satellite') {
-        baseTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-        overlayTileUrl = null;
-      }
+      // IN TRIVIA MODE: ALWAYS render a crisp Political Map with ZERO labels and ZERO API keys.
+      // Esri World_Ocean_Base provides classic blue oceans and clean landmasses with 100% ZERO text labels,
+      // while vector GeoJSON polygons render vibrant political country colors and sovereign borders on top.
+      baseTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}';
+      overlayTileUrl = null;
+      maxNativeZoom = 12;
     } else {
       if (currentLens === 'political') {
         baseTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
@@ -231,6 +249,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     baseTileLayerRef.current = L.tileLayer(baseTileUrl, {
       maxZoom: 18,
       attribution,
+      ...(maxNativeZoom ? { maxNativeZoom } : {}),
       ...(subdomains ? { subdomains } : {}),
     }).addTo(map);
 
@@ -243,10 +262,20 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     }
   }, [currentLens, isTriviaMode]);
 
-  // Fetch Live Country GeoJSON
+  // Fetch Local Exact Dissolved Continents GeoJSON (loads instantly ~10ms) + Live Country GeoJSON
   useEffect(() => {
     let isMounted = true;
     setIsLoadingGeo(true);
+
+    fetchContinentsGeoJson()
+      .then((data) => {
+        if (isMounted) {
+          setContinentsGeoData(data);
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not load local continents.geojson:', err);
+      });
 
     fetchCountriesGeoJson()
       .then((data) => {
@@ -342,15 +371,17 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     [countries]
   );
 
-  // Render & Style GeoJSON Polygons
+  // Render & Style Country GeoJSON Polygons (hidden during Continents topic mode so dissolved vector continents shine cleanly)
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || !geoData) return;
+    if (!map) return;
 
     if (geoJsonLayerRef.current) {
       map.removeLayer(geoJsonLayerRef.current);
       geoJsonLayerRef.current = null;
     }
+
+    if (!geoData || isContinentsTopic) return;
 
     const geoLayer = L.geoJSON(geoData, {
       style: (feature) => {
@@ -363,40 +394,45 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
 
         if (isShaking) {
           return {
-            color: '#ef4444',
-            weight: 4,
+            color: '#dc2626',
+            weight: 3.5,
             opacity: 1,
             fill: true,
             fillColor: '#ef4444',
-            fillOpacity: isTriviaMode ? 0.35 : 0,
+            fillOpacity: isTriviaMode ? 0.65 : 0,
             className: 'poly-wrong-shake',
           };
         }
 
         if (isSelected || isHighlighted) {
-          // Línea amarilla que identifica al país seleccionado / acertado
+          // Resalte dorado nítido para el país seleccionado / acertado
           return {
-            color: '#fbbf24',
-            weight: 2.5,
+            color: isTriviaMode ? '#b45309' : '#fbbf24',
+            weight: isTriviaMode ? 3 : 2.5,
             opacity: 1,
             fill: true,
-            fillColor: isTriviaMode ? '#d97706' : '#000000',
-            fillOpacity: isTriviaMode ? 0.35 : 0.0001,
+            fillColor: isTriviaMode ? '#fbbf24' : '#000000',
+            fillOpacity: isTriviaMode ? 0.82 : 0.0001,
             className: 'poly-neon no-focus-outline',
           };
         }
 
-        // En modo Trivia: cada país tiene un relleno opaco y bordes contrastados para que el mapa político
-        // muestre las fronteras nítidas y NINGÚN nombre de país pueda asomarse desde el fondo, incluso con zoom cercano
+        // En modo Trivia: mapa político clásico multicolor con fronteras nítidas y CERO nombres de países
         if (isTriviaMode) {
+          const colorKey =
+            country?.iso2 ||
+            iso ||
+            feature?.properties?.ADMIN ||
+            feature?.properties?.name ||
+            'world';
           return {
-            color: '#475569',
-            weight: 1.4,
-            opacity: 0.95,
+            color: '#334155',
+            weight: 1.25,
+            opacity: 0.92,
             fill: true,
-            fillColor: '#1e293b',
-            fillOpacity: 0.8,
-            className: 'cursor-pointer hover:stroke-amber-400 transition-colors no-focus-outline',
+            fillColor: getPoliticalAtlasColor(colorKey),
+            fillOpacity: 0.9,
+            className: 'cursor-pointer transition-colors no-focus-outline',
           };
         }
 
@@ -428,7 +464,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         const name = country ? (currentLang === 'es' ? country.name_es : country.name_en) : (feature?.properties?.ADMIN || feature?.properties?.name || 'Country');
         const iso = country?.iso2.toLowerCase() || (feature?.properties?.ISO_A2 || '').toLowerCase();
 
-        // Tooltip: Disabled in Trivia mode and in non-country topic views (Continents, Oceans, Seas, Poles)
+        // Tooltip: Disabled in Trivia mode and non-country topic views
         if (!isTriviaMode && !(topicItems && topicItems.length > 0)) {
           layer.bindTooltip(`<strong>${name}</strong>`, {
             sticky: true,
@@ -437,18 +473,18 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
           });
         }
 
-        // Hover effect: solo resaltar el contorno exterior sin aplicar sombreado
+        // Hover effect: resaltar país en el mapa político sin revelar su nombre
         layer.on({
           mouseover: (e) => {
             const l = e.target;
             if (l.options.className && !l.options.className.includes('poly-neon')) {
               l.setStyle({
-                weight: 2.25,
-                color: '#fbbf24',
+                weight: isTriviaMode ? 2.5 : 2.25,
+                color: isTriviaMode ? '#d97706' : '#fbbf24',
                 opacity: 1,
                 fill: true,
-                fillColor: isTriviaMode ? '#334155' : '#000000',
-                fillOpacity: isTriviaMode ? 0.85 : 0.0001,
+                fillColor: isTriviaMode ? '#fef08a' : '#000000',
+                fillOpacity: isTriviaMode ? 0.95 : 0.0001,
               });
             }
           },
@@ -474,14 +510,6 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
               return; // Modo Repaso: Únicamente permitidos zoom in, zoom out y arrastre del mapa
             }
             if (topicItems && topicItems.length > 0) {
-              if (topicItems[0].topic === 'continents' && onClickTopicItem && country?.continent) {
-                const matched = topicItems.find(
-                  (t) => t.id.toLowerCase() === country.continent.toLowerCase()
-                );
-                if (matched) {
-                  onClickTopicItem(matched);
-                }
-              }
               return;
             }
             if (currentLevel === 3) {
@@ -526,6 +554,209 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     triviaFlavor,
     onTriviaMapClick,
     isReviewMode,
+    topicItems,
+    isContinentsTopic,
+  ]);
+
+  // Render Exact Pre-Dissolved Natural Earth Vector Continent Boundaries (Ural Mountains/River, Caucasus, Bosphorus, Suez, Darién)
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (continentCasingLayerRef.current) {
+      map.removeLayer(continentCasingLayerRef.current);
+      continentCasingLayerRef.current = null;
+    }
+    if (continentVectorLayerRef.current) {
+      map.removeLayer(continentVectorLayerRef.current);
+      continentVectorLayerRef.current = null;
+    }
+
+    if (!isContinentsTopic || !continentsGeoData?.features?.length) return;
+
+    // Sort features so the active selected/revealed continent draws last (on top along shared land borders)
+    const orderedFeatures = [...continentsGeoData.features].sort((a: any, b: any) => {
+      const aActive = a?.properties?.id === activeHighlightedContinentId ? 1 : 0;
+      const bActive = b?.properties?.id === activeHighlightedContinentId ? 1 : 0;
+      return aActive - bActive;
+    });
+
+    // 1. Crisp dark outer casing strictly behind the active selected/revealed continent
+    if (activeHighlightedContinentId) {
+      const activeFeature = orderedFeatures.find(
+        (f: any) => f?.properties?.id === activeHighlightedContinentId
+      );
+      if (activeFeature) {
+        const casingLayer = L.geoJSON(activeFeature, {
+          pane: 'continentCasingPane',
+          interactive: false,
+          style: () => ({
+            color: '#020617',
+            weight: 5.2,
+            opacity: 0.82,
+            fill: false,
+            lineJoin: 'round',
+            lineCap: 'round',
+          }),
+        }).addTo(map);
+        continentCasingLayerRef.current = casingLayer;
+      }
+    }
+
+    // 2. Pure native SVG vector continent polygons (100% crisp at every zoom level, zero internal seams)
+    const continentsLayer = L.geoJSON(
+      { type: 'FeatureCollection', features: orderedFeatures } as any,
+      {
+        pane: 'continentVectorPane',
+        style: (feature) => {
+          const contId = feature?.properties?.id as string | undefined;
+          const isActive = Boolean(contId && contId === activeHighlightedContinentId);
+          const isFound = Boolean(contId && foundTopicItemIds.includes(contId));
+
+          if (isActive) {
+            const isPlayReveal = topicMode === 'play';
+            return {
+              color: '#fbbf24',
+              weight: 2.8,
+              opacity: 1,
+              fill: true,
+              fillColor: isPlayReveal ? '#f59e0b' : '#10b981',
+              fillOpacity: isPlayReveal ? 0.34 : 0.28,
+              lineJoin: 'round',
+              lineCap: 'round',
+              className: 'cursor-pointer poly-neon no-focus-outline',
+            };
+          }
+
+          if (topicMode === 'play') {
+            if (isFound) {
+              return {
+                color: '#059669',
+                weight: 2.2,
+                opacity: 0.95,
+                fill: true,
+                fillColor: '#34d399',
+                fillOpacity: 0.55,
+                lineJoin: 'round',
+                lineCap: 'round',
+                className: 'cursor-pointer no-focus-outline',
+              };
+            }
+            return {
+              color: '#334155',
+              weight: 1.5,
+              opacity: 0.92,
+              fill: true,
+              fillColor: getPoliticalAtlasColor(contId || 'continent'),
+              fillOpacity: 0.85,
+              lineJoin: 'round',
+              lineCap: 'round',
+              className: 'cursor-pointer transition-colors no-focus-outline',
+            };
+          }
+
+          // Explore mode: if another continent is selected, gently dim non-selected continents
+          if (activeHighlightedContinentId) {
+            return {
+              color: '#64748b',
+              weight: 1.0,
+              opacity: 0.55,
+              fill: true,
+              fillColor: '#0f172a',
+              fillOpacity: 0.26,
+              lineJoin: 'round',
+              lineCap: 'round',
+              className: 'cursor-pointer transition-colors no-focus-outline',
+            };
+          }
+
+          // Explore mode overview (no continent selected yet): clean vector outlines for all 7 continents
+          return {
+            color: currentLens === 'political' ? '#059669' : '#34d399',
+            weight: 1.6,
+            opacity: 0.75,
+            fill: true,
+            fillColor: '#10b981',
+            fillOpacity: 0.08,
+            lineJoin: 'round',
+            lineCap: 'round',
+            className: 'cursor-pointer transition-colors no-focus-outline',
+          };
+        },
+        onEachFeature: (feature, layer) => {
+          const contId = feature?.properties?.id as string | undefined;
+          const label =
+            currentLang === 'es'
+              ? feature?.properties?.name_es || contId || ''
+              : feature?.properties?.name_en || contId || '';
+
+          if (topicMode === 'explore' && label) {
+            layer.bindTooltip(`<strong>${label}</strong>`, {
+              sticky: true,
+              direction: 'top',
+              className:
+                'bg-emerald-950/95 text-emerald-100 text-xs px-2.5 py-1 rounded-lg shadow-lg border border-emerald-400/60',
+            });
+          }
+
+          layer.on({
+            mouseover: (e) => {
+              if (contId === activeHighlightedContinentId) return;
+              const l = e.target;
+              l.setStyle({
+                color: topicMode === 'play' ? '#d97706' : '#fbbf24',
+                weight: 2.5,
+                opacity: 1,
+                fill: true,
+                fillColor: topicMode === 'play' ? '#fef08a' : '#10b981',
+                fillOpacity: topicMode === 'play' ? 0.92 : 0.22,
+              });
+            },
+            mouseout: (e) => {
+              continentsLayer.resetStyle(e.target);
+            },
+            click: (e) => {
+              L.DomEvent.stopPropagation(e);
+              try {
+                if (
+                  e.originalEvent?.target &&
+                  typeof (e.originalEvent.target as any).blur === 'function'
+                ) {
+                  (e.originalEvent.target as any).blur();
+                }
+                if (
+                  document.activeElement instanceof HTMLElement ||
+                  document.activeElement instanceof SVGElement
+                ) {
+                  document.activeElement.blur();
+                }
+              } catch {
+                // no-op
+              }
+
+              if (contId && topicItems && onClickTopicItem) {
+                const matched = topicItems.find(
+                  (t) => t.id.toLowerCase() === contId.toLowerCase()
+                );
+                if (matched) {
+                  onClickTopicItem(matched);
+                }
+              }
+            },
+          });
+        },
+      }
+    ).addTo(map);
+
+    continentVectorLayerRef.current = continentsLayer;
+  }, [
+    continentsGeoData,
+    isContinentsTopic,
+    topicMode,
+    currentLens,
+    currentLang,
+    activeHighlightedContinentId,
+    foundTopicItemIds,
     topicItems,
     onClickTopicItem,
   ]);
@@ -741,7 +972,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     // De lo contrario, los demás accidentes se representan mediante un punto rojo discreto de 7px sin tapar el país.
     let activeFeatureRendered = false;
 
-    if (selectedCountry && selectedCountry.landforms) {
+    if (!isTriviaMode && selectedCountry && selectedCountry.landforms) {
       selectedCountry.landforms.forEach((landform) => {
         const badgeName = currentLang === 'es' ? landform.name_es : landform.name_en;
         const badgeIcon = getBadgeIcon(landform.type);
@@ -835,7 +1066,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
 
     // 2.b. Render Surrounding Seas & Oceans for the selected country
     // Solo mostrar tarjeta marina expandida cuando se ejecuta un Fly To hacia ese mar/océano
-    if (selectedCountry) {
+    if (!isTriviaMode && selectedCountry) {
       const surroundingProfile = getCountrySurroundingWaters(selectedCountry);
       if (surroundingProfile && surroundingProfile.waters) {
         surroundingProfile.waters.forEach((water) => {
@@ -950,7 +1181,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     }
 
     // 3. Highlight specific active Landform Feature ONLY if not already rendered as part of selected country
-    if (activeFeatureBadge && !activeFeatureRendered) {
+    if (!isTriviaMode && activeFeatureBadge && !activeFeatureRendered) {
       const activeName = currentLang === 'es' ? activeFeatureBadge.name_es : activeFeatureBadge.name_en;
       const activeIcon = getBadgeIcon(activeFeatureBadge.type);
 
@@ -1076,23 +1307,46 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     }
   }, [currentMode, isPlayMode, selectedCountry, highlightedIso2, activeFeatureBadge, isReviewMode, selectedTopicItemId, revealedTopicItemId]);
 
-  // Handle Fly-To Coords & Zoom Changes
+  // Handle Fly-To Coords & Zoom Changes (or fit exact continent bounds when exploring continents)
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || !flyToCoords) return;
+    if (!map) return;
+
+    if (
+      isContinentsTopic &&
+      activeHighlightedContinentId &&
+      CONTINENT_VIEW_BOUNDS[activeHighlightedContinentId as CanonicalContinentId]
+    ) {
+      const bounds = CONTINENT_VIEW_BOUNDS[activeHighlightedContinentId as CanonicalContinentId];
+      const vw = typeof window !== 'undefined' ? window.innerWidth : 1280;
+      const vh = typeof window !== 'undefined' ? window.innerHeight : 720;
+      const isLandscape = vw >= vh;
+      const panelWidth = isLandscape ? Math.min(300, Math.max(176, Math.round(vw * 0.245))) : 0;
+      const rightPad = isLandscape ? panelWidth + 20 : 28;
+      map.flyToBounds(bounds, {
+        paddingTopLeft: [32, 32],
+        paddingBottomRight: [rightPad, 32],
+        maxZoom: 4.2,
+        duration: 1.25,
+        easeLinearity: 0.25,
+      });
+      return;
+    }
+
+    if (!flyToCoords) return;
 
     map.flyTo(flyToCoords, flyToZoom || 6, {
       duration: 1.5,
       easeLinearity: 0.25,
     });
-  }, [flyToCoords, flyToZoom]);
+  }, [flyToCoords, flyToZoom, isContinentsTopic, activeHighlightedContinentId]);
 
   return (
     <div className="relative w-full h-full bg-slate-950 overflow-hidden select-none">
       <div ref={mapContainerRef} className="w-full h-full z-0" />
 
       {/* Loading Indicator for GeoJSON */}
-      {isLoadingGeo && (
+      {(isContinentsTopic ? !continentsGeoData : isLoadingGeo) && (
         <div className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-slate-900/90 text-amber-300 px-3 py-1.5 rounded-full border border-slate-700 text-xs backdrop-blur-md shadow-md animate-pulse">
           <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -1112,6 +1366,29 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
     </div>
   );
 };
+
+// Helper: Deterministic classic political atlas palette (vibrant, zero ocean-blue overlap)
+const POLITICAL_ATLAS_PALETTE = [
+  '#fde68a', // warm atlas yellow
+  '#a7f3d0', // soft mint green
+  '#fecdd3', // rose coral
+  '#ddd6fe', // soft lavender
+  '#fed7aa', // warm apricot
+  '#d9f99d', // pastel olive-lime
+  '#f5d0fe', // soft orchid pink
+  '#e7d3b0', // warm parchment sand
+];
+
+function getPoliticalAtlasColor(key: string): string {
+  const normalized = (key || 'world').toLowerCase().trim();
+  let hash = 2166136261;
+  for (let i = 0; i < normalized.length; i++) {
+    hash ^= normalized.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  const index = Math.abs(hash) % POLITICAL_ATLAS_PALETTE.length;
+  return POLITICAL_ATLAS_PALETTE[index];
+}
 
 // Helper: Semantic Badge CSS classes
 function getBadgeCssClass(type: SemanticBadgeType): string {

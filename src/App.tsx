@@ -39,6 +39,7 @@ import {
   LEVEL_3_QUESTIONS,
   LEVEL_4_CONTINENT_QUESTIONS,
 } from './data/levelQuestionsData';
+import { speakGeoName, stopSpeaking } from './utils/speechService';
 
 const STORAGE_KEY_LANG = 'aprendiendo_mundo_lang_v1';
 const STORAGE_KEY_TRIVIA_STATS = 'geomaster_trivia_stats_v2';
@@ -208,22 +209,28 @@ export default function App() {
   );
 
   // Start Topic Game (Continents, Oceans, Seas, Poles)
-  const startTopicGame = useCallback((topic: 'continents' | 'oceans' | 'seas' | 'poles') => {
-    const items = shuffleArray(getItemsForTopic(topic));
-    setTopicGameQueue(items);
-    setTopicGameIndex(0);
-    setTopicGameScore(0);
-    setTopicGameStreak(0);
-    setTopicGameAttempt(1);
-    setTopicGameAnswered(false);
-    setTopicGameCorrect(null);
-    setTopicGameLastWrong(null);
-    setTopicGameFoundIds([]);
-    setTopicGameRevealedId(null);
-    setTopicGameFinished(false);
-    setFlyToCoords([15, 0]);
-    setFlyToZoom(2);
-  }, []);
+  const startTopicGame = useCallback(
+    (topic: 'continents' | 'oceans' | 'seas' | 'poles') => {
+      const items = shuffleArray(getItemsForTopic(topic));
+      setTopicGameQueue(items);
+      setTopicGameIndex(0);
+      setTopicGameScore(0);
+      setTopicGameStreak(0);
+      setTopicGameAttempt(1);
+      setTopicGameAnswered(false);
+      setTopicGameCorrect(null);
+      setTopicGameLastWrong(null);
+      setTopicGameFoundIds([]);
+      setTopicGameRevealedId(null);
+      setTopicGameFinished(false);
+      setFlyToCoords([15, 0]);
+      setFlyToZoom(2);
+      if (items[0]) {
+        speakGeoName(currentLang === 'es' ? items[0].name_es : items[0].name_en, currentLang, soundEnabled);
+      }
+    },
+    [currentLang, soundEnabled]
+  );
 
   // Launch Explore Topic
   const handleSelectExploreTopic = useCallback(
@@ -243,9 +250,7 @@ export default function App() {
     (topic: ExplorePlayTopic) => {
       setWorkspaceMode('play');
       setWorkspaceTopic(topic);
-      const preferredLens: LensType =
-        topic === 'oceans' || topic === 'seas' || topic === 'poles' ? 'physical' : 'political';
-      resetMapVisuals(preferredLens);
+      resetMapVisuals('political');
 
       if (topic === 'countries') {
         setCountryPlayKind('trivia');
@@ -285,10 +290,13 @@ export default function App() {
   // Handle clicking a topic marker or continent polygon
   const handleClickTopicItem = useCallback(
     (item: GeoTopicItem) => {
+      const spokenName = currentLang === 'es' ? item.name_es : item.name_en;
+
       if (workspaceMode === 'explore') {
         setSelectedTopicItem(item);
         setFlyToCoords([...item.coords]);
         setFlyToZoom(item.zoom);
+        speakGeoName(spokenName, currentLang, soundEnabled);
         return;
       }
 
@@ -305,9 +313,10 @@ export default function App() {
         setTopicGameRevealedId(item.id);
         setFlyToCoords([...item.coords]);
         setFlyToZoom(item.zoom);
+        speakGeoName(spokenName, currentLang, soundEnabled);
       } else {
-        const wrongName = currentLang === 'es' ? item.name_es : item.name_en;
-        setTopicGameLastWrong(wrongName);
+        setTopicGameLastWrong(spokenName);
+        speakGeoName(spokenName, currentLang, soundEnabled);
         if (topicGameAttempt < 3) {
           setTopicGameAttempt((prev) => prev + 1);
         } else {
@@ -321,12 +330,21 @@ export default function App() {
         }
       }
     },
-    [workspaceMode, currentGameTarget, topicGameAnswered, topicGameFinished, topicGameAttempt, currentLang]
+    [
+      workspaceMode,
+      currentGameTarget,
+      topicGameAnswered,
+      topicGameFinished,
+      topicGameAttempt,
+      currentLang,
+      soundEnabled,
+    ]
   );
 
   const handleNextTopicQuestion = useCallback(() => {
     if (topicGameIndex + 1 < topicGameQueue.length) {
-      setTopicGameIndex((prev) => prev + 1);
+      const nextIdx = topicGameIndex + 1;
+      setTopicGameIndex(nextIdx);
       setTopicGameAttempt(1);
       setTopicGameAnswered(false);
       setTopicGameCorrect(null);
@@ -334,51 +352,86 @@ export default function App() {
       setTopicGameRevealedId(null);
       setFlyToCoords([15, 0]);
       setFlyToZoom(2);
+      const nextItem = topicGameQueue[nextIdx];
+      if (nextItem) {
+        speakGeoName(currentLang === 'es' ? nextItem.name_es : nextItem.name_en, currentLang, soundEnabled);
+      }
     } else {
       setTopicGameFinished(true);
       setTopicGameRevealedId(null);
       setFlyToCoords([15, 0]);
       setFlyToZoom(2);
     }
-  }, [topicGameIndex, topicGameQueue.length]);
+  }, [topicGameIndex, topicGameQueue, currentLang, soundEnabled]);
 
   // Country Exploration Handlers
-  const handleSelectCountry = useCallback((country: CountryDossierData | null) => {
-    setSelectedCountry(country);
-    if (country) {
-      setIsDossierOpen(true);
-      setHighlightedIso2(country.iso2);
-      setActiveFeatureBadge(null);
-      setFlyToCoords([...country.center_coords]);
-      setFlyToZoom(country.zoom_level || 5);
-    } else {
-      setIsDossierOpen(false);
-      setHighlightedIso2(null);
-    }
-  }, []);
+  const handleSelectCountry = useCallback(
+    (country: CountryDossierData | null) => {
+      setSelectedCountry(country);
+      if (country) {
+        setIsDossierOpen(true);
+        setHighlightedIso2(country.iso2);
+        setActiveFeatureBadge(null);
+        setFlyToCoords([...country.center_coords]);
+        setFlyToZoom(country.zoom_level || 5);
+        speakGeoName(currentLang === 'es' ? country.name_es : country.name_en, currentLang, soundEnabled);
+      } else {
+        setIsDossierOpen(false);
+        setHighlightedIso2(null);
+      }
+    },
+    [currentLang, soundEnabled]
+  );
 
-  const handleFlyToFeature = useCallback((coords: [number, number], zoom: number, feature?: LandformFeature) => {
-    setFlyToCoords([...coords]);
-    setFlyToZoom(zoom);
-    if (feature) setActiveFeatureBadge(feature);
-  }, []);
+  const handleFlyToFeature = useCallback(
+    (coords: [number, number], zoom: number, feature?: LandformFeature) => {
+      setFlyToCoords([...coords]);
+      setFlyToZoom(zoom);
+      if (feature) {
+        setActiveFeatureBadge(feature);
+        speakGeoName(currentLang === 'es' ? feature.name_es : feature.name_en, currentLang, soundEnabled);
+      }
+    },
+    [currentLang, soundEnabled]
+  );
 
-  const handleJumpToContinent = useCallback((continent: string) => {
-    const centers: Record<string, { coords: [number, number]; zoom: number }> = {
-      World: { coords: [20, 0], zoom: 2 },
-      'North America': { coords: [45, -100], zoom: 3.5 },
-      'South America': { coords: [-18, -60], zoom: 3.5 },
-      Europe: { coords: [50, 14], zoom: 4 },
-      Africa: { coords: [4, 20], zoom: 3.5 },
-      Asia: { coords: [34, 92], zoom: 3.5 },
-      Oceania: { coords: [-24, 138], zoom: 4 },
-    };
-    const target = centers[continent] || centers.World;
-    setFlyToCoords([...target.coords]);
-    setFlyToZoom(target.zoom);
-  }, []);
+  const handleJumpToContinent = useCallback(
+    (continent: string) => {
+      const centers: Record<string, { coords: [number, number]; zoom: number; es: string; en: string }> = {
+        World: { coords: [20, 0], zoom: 2, es: 'Todo el mundo', en: 'Entire world' },
+        'North America': { coords: [45, -100], zoom: 3.5, es: 'América del Norte', en: 'North America' },
+        'South America': { coords: [-18, -60], zoom: 3.5, es: 'América del Sur', en: 'South America' },
+        Europe: { coords: [50, 14], zoom: 4, es: 'Europa', en: 'Europe' },
+        Africa: { coords: [4, 20], zoom: 3.5, es: 'África', en: 'Africa' },
+        Asia: { coords: [34, 92], zoom: 3.5, es: 'Asia', en: 'Asia' },
+        Oceania: { coords: [-24, 138], zoom: 4, es: 'Oceanía', en: 'Oceania' },
+      };
+      const target = centers[continent] || centers.World;
+      setFlyToCoords([...target.coords]);
+      setFlyToZoom(target.zoom);
+      if (continent !== 'World') {
+        speakGeoName(currentLang === 'es' ? target.es : target.en, currentLang, soundEnabled);
+      }
+    },
+    [currentLang, soundEnabled]
+  );
 
   // Countries Play -> Review Handlers
+  const speakReviewEntry = useCallback(
+    (country: CountryDossierData, topic: ReviewTopic | null) => {
+      const text =
+        topic === 'capitals'
+          ? currentLang === 'es'
+            ? country.capital_es
+            : country.capital_en
+          : currentLang === 'es'
+          ? country.name_es
+          : country.name_en;
+      speakGeoName(text, currentLang, soundEnabled);
+    },
+    [currentLang, soundEnabled]
+  );
+
   const handleStartReview = useCallback(() => {
     if (!reviewContinentId || !reviewTopic) return;
     const option = REVIEW_CONTINENT_OPTIONS.find((c) => c.id === reviewContinentId);
@@ -396,7 +449,8 @@ export default function App() {
     setFlyToCoords([...coords]);
     setFlyToZoom(first.zoom_level || 5);
     setHighlightedIso2(first.iso2);
-  }, [reviewContinentId, reviewTopic, countries]);
+    speakReviewEntry(first, reviewTopic);
+  }, [reviewContinentId, reviewTopic, countries, speakReviewEntry]);
 
   const handleNextReviewCountry = useCallback(() => {
     if (reviewQueue.length === 0) return;
@@ -411,11 +465,12 @@ export default function App() {
       setFlyToCoords([...coords]);
       setFlyToZoom(nextCountry.zoom_level || 5);
       setHighlightedIso2(nextCountry.iso2);
+      speakReviewEntry(nextCountry, reviewTopic);
     } else {
       setReviewIsCompleted(true);
       setHighlightedIso2(null);
     }
-  }, [reviewQueue, reviewCurrentIndex, reviewTopic]);
+  }, [reviewQueue, reviewCurrentIndex, reviewTopic, speakReviewEntry]);
 
   const handlePreviousReviewCountry = useCallback(() => {
     if (reviewQueue.length === 0 || reviewCurrentIndex <= 0) return;
@@ -429,7 +484,8 @@ export default function App() {
     setFlyToCoords([...coords]);
     setFlyToZoom(prevCountry.zoom_level || 5);
     setHighlightedIso2(prevCountry.iso2);
-  }, [reviewQueue, reviewCurrentIndex, reviewTopic]);
+    speakReviewEntry(prevCountry, reviewTopic);
+  }, [reviewQueue, reviewCurrentIndex, reviewTopic, speakReviewEntry]);
 
   const handleRecenterReviewMap = useCallback(() => {
     const c = reviewQueue[reviewCurrentIndex];
@@ -450,7 +506,8 @@ export default function App() {
     setFlyToCoords([...coords]);
     setFlyToZoom(first.zoom_level || 5);
     setHighlightedIso2(first.iso2);
-  }, [reviewQueue, reviewTopic]);
+    speakReviewEntry(first, reviewTopic);
+  }, [reviewQueue, reviewTopic, speakReviewEntry]);
 
   const handleResetReview = useCallback(() => {
     setReviewContinentId(null);
@@ -485,7 +542,12 @@ export default function App() {
     setSelectedCountry(null);
     setFlyToCoords([20, 0]);
     setFlyToZoom(2);
-  }, [triviaContinentId, triviaFlavor, triviaAskedIds, countries]);
+    if (triviaFlavor === 'countries') {
+      speakGeoName(currentLang === 'es' ? q.targetName_es : q.targetName_en, currentLang, soundEnabled);
+    } else if (triviaFlavor === 'capitals') {
+      speakGeoName(currentLang === 'es' ? q.capital_es : q.capital_en, currentLang, soundEnabled);
+    }
+  }, [triviaContinentId, triviaFlavor, triviaAskedIds, countries, currentLang, soundEnabled]);
 
   const handleTriviaNextQuestion = useCallback(() => {
     if (!triviaFlavor) return;
@@ -506,7 +568,12 @@ export default function App() {
     setHighlightedIso2(null);
     setShakeIso2(null);
     setSelectedCountry(null);
-  }, [triviaFlavor, triviaContinentId, triviaAskedIds, countries]);
+    if (triviaFlavor === 'countries') {
+      speakGeoName(currentLang === 'es' ? newQ.targetName_es : newQ.targetName_en, currentLang, soundEnabled);
+    } else if (triviaFlavor === 'capitals') {
+      speakGeoName(currentLang === 'es' ? newQ.capital_es : newQ.capital_en, currentLang, soundEnabled);
+    }
+  }, [triviaFlavor, triviaContinentId, triviaAskedIds, countries, currentLang, soundEnabled]);
 
   const handleTriviaReturnToCategories = useCallback(() => {
     setTriviaQuestion(null);
@@ -580,6 +647,11 @@ export default function App() {
         setTriviaEarnedPoints(pts);
         setTriviaLastWrongGuessName(null);
         if (triviaQuestion.targetIso2) setHighlightedIso2(triviaQuestion.targetIso2);
+        speakGeoName(
+          currentLang === 'es' ? triviaQuestion.targetName_es : triviaQuestion.targetName_en,
+          currentLang,
+          soundEnabled
+        );
       } else {
         const wrongName = clickedCountry
           ? currentLang === 'es'
@@ -587,6 +659,9 @@ export default function App() {
             : clickedCountry.name_en
           : clickedId;
         setTriviaLastWrongGuessName(wrongName);
+        if (clickedCountry) {
+          speakGeoName(wrongName, currentLang, soundEnabled);
+        }
         if (clickedCountry?.iso2) {
           setShakeIso2(clickedCountry.iso2);
           setTimeout(() => setShakeIso2(null), 900);
@@ -612,10 +687,15 @@ export default function App() {
           setFlyToCoords(triviaQuestion.targetCoords);
           setFlyToZoom(triviaQuestion.targetZoom);
           if (triviaQuestion.targetIso2) setHighlightedIso2(triviaQuestion.targetIso2);
+          speakGeoName(
+            currentLang === 'es' ? triviaQuestion.targetName_es : triviaQuestion.targetName_en,
+            currentLang,
+            soundEnabled
+          );
         }
       }
     },
-    [triviaQuestion, triviaIsAnswered, triviaFlavor, triviaCurrentAttempt, currentLang]
+    [triviaQuestion, triviaIsAnswered, triviaFlavor, triviaCurrentAttempt, currentLang, soundEnabled]
   );
 
   // Learning Handlers (Aprender -> Fundamentos & Países)
@@ -680,8 +760,13 @@ export default function App() {
         description_en: item.definition_en,
         description_es: item.definition_es,
       });
+      speakGeoName(
+        currentLang === 'es' ? item.example_name_es : item.example_name_en,
+        currentLang,
+        soundEnabled
+      );
     },
-    []
+    [currentLang, soundEnabled]
   );
 
   const handleOpenCountryFromLearn = useCallback(
@@ -695,8 +780,9 @@ export default function App() {
       setHighlightedIso2(country.iso2);
       setFlyToCoords([...country.center_coords]);
       setFlyToZoom(country.zoom_level || 5);
+      speakGeoName(currentLang === 'es' ? country.name_es : country.name_en, currentLang, soundEnabled);
     },
-    []
+    [currentLang, soundEnabled]
   );
 
   const handleStartCountryReviewFromLearn = useCallback(
@@ -739,7 +825,12 @@ export default function App() {
           soundEnabled={soundEnabled}
           shouldAnimateIntro={!hasPlayedIntro && menuView === 'main'}
           onIntroCompleted={() => setHasPlayedIntro(true)}
-          onToggleSound={() => setSoundEnabled((prev) => !prev)}
+          onToggleSound={() =>
+            setSoundEnabled((prev) => {
+              if (prev) stopSpeaking();
+              return !prev;
+            })
+          }
           onToggleLang={handleToggleLang}
           onChangeMenuView={handleChangeMenuView}
           onSelectExploreTopic={handleSelectExploreTopic}
@@ -761,16 +852,25 @@ export default function App() {
             currentLens={currentLens}
             onChangeLens={setCurrentLens}
             onGoHome={() => {
+              stopSpeaking();
               resetMapVisuals('political');
               setInMapWorkspace(false);
               setMenuView('main');
             }}
             onBack={() => {
+              stopSpeaking();
               resetMapVisuals('political');
               setInMapWorkspace(false);
               setMenuView(workspaceMode === 'explore' ? 'explore' : 'play');
             }}
             onToggleLang={handleToggleLang}
+            soundEnabled={soundEnabled}
+            onToggleSound={() =>
+              setSoundEnabled((prev) => {
+                if (prev) stopSpeaking();
+                return !prev;
+              })
+            }
             countryPlayKind={countryPlayKind}
             onChangeCountryPlayKind={(kind) => {
               setCountryPlayKind(kind);
@@ -779,6 +879,7 @@ export default function App() {
               setHighlightedIso2(null);
               setShakeIso2(null);
               if (kind === 'trivia') {
+                setCurrentLens('political');
                 setTriviaQuestion(null);
                 setTriviaIsAnswered(false);
                 setTriviaIsCorrect(null);
@@ -855,6 +956,11 @@ export default function App() {
                   setSelectedTopicItem(item);
                   setFlyToCoords([...item.coords]);
                   setFlyToZoom(item.zoom);
+                  speakGeoName(
+                    currentLang === 'es' ? item.name_es : item.name_en,
+                    currentLang,
+                    soundEnabled
+                  );
                 }}
                 onBackToList={() => {
                   setSelectedTopicItem(null);
@@ -1001,7 +1107,7 @@ export default function App() {
           setIsLevel3LearnOpen(false);
           handleOpenEvaluation(3);
         }}
-        onFlyToOceanSea={(coords, zoom, _name, lens) => {
+        onFlyToOceanSea={(coords, zoom, name, lens) => {
           setIsLevel3LearnOpen(false);
           setWorkspaceMode('explore');
           setWorkspaceTopic('oceans');
@@ -1009,6 +1115,7 @@ export default function App() {
           setInMapWorkspace(true);
           setFlyToCoords(coords);
           setFlyToZoom(zoom);
+          speakGeoName(name, currentLang, soundEnabled);
         }}
         onChangeLens={setCurrentLens}
         currentLang={currentLang}

@@ -11,7 +11,9 @@ import {
   Minimize2,
   Maximize2,
   MapPin,
+  Volume2,
 } from 'lucide-react';
+import { speakGeoName } from '../utils/speechService';
 
 interface TopicGamePanelProps {
   topic: 'continents' | 'oceans' | 'seas' | 'poles';
@@ -163,9 +165,22 @@ export const TopicGamePanel: React.FC<TopicGamePanelProps> = ({
                 <p className="text-xs font-semibold text-slate-500">
                   {isEs ? 'Ubica en el mapa:' : 'Find on the map:'}
                 </p>
-                <h3 className="font-display font-extrabold text-xl text-slate-950 leading-snug">
-                  {isEs ? targetItem.name_es : targetItem.name_en}
-                </h3>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="font-display font-extrabold text-xl text-slate-950 leading-snug">
+                    {isEs ? targetItem.name_es : targetItem.name_en}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      speakGeoName(isEs ? targetItem.name_es : targetItem.name_en, currentLang, true)
+                    }
+                    title={isEs ? 'Escuchar pronunciación' : 'Listen to pronunciation'}
+                    aria-label={isEs ? 'Escuchar pronunciación' : 'Listen to pronunciation'}
+                    className="p-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 transition-colors shrink-0 cursor-pointer"
+                  >
+                    <Volume2 className="w-4 h-4" />
+                  </button>
+                </div>
                 {!isAnswered && (
                   <p className="text-xs text-slate-600 inline-flex items-center gap-1.5 pt-1">
                     <MapPin className="w-3.5 h-3.5 text-amber-600 shrink-0" />

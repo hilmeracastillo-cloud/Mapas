@@ -21,8 +21,10 @@ import {
   Minimize2,
   Maximize2,
   Target,
-  Shuffle
+  Shuffle,
+  Volume2,
 } from 'lucide-react';
+import { speakGeoName } from '../utils/speechService';
 
 interface PlayTriviaPanelProps {
   currentLang: Language;
@@ -69,6 +71,7 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
 }) => {
   const isEs = currentLang === 'es';
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [hoveredTip, setHoveredTip] = useState<{ title: string; text: string } | null>(null);
   const panelRef = useRef<HTMLElement>(null);
 
   // Helper to format points text safely
@@ -286,28 +289,36 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
         {!isSessionActive && (
           <div className="space-y-2.5">
             {/* Step 1: Continent Selection */}
-            <div className="text-left space-y-0.5">
+            <div className="text-left">
               <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>{isEs ? 'Paso 1: Selecciona un Continente' : 'Step 1: Select a Continent'}</span>
+                <span>{isEs ? 'Paso 1: Continente' : 'Step 1: Continent'}</span>
               </h3>
-              <p className="text-[10.5px] text-slate-300 leading-snug">
-                {isEs
-                  ? 'La trivia generará preguntas exclusivas de este continente.'
-                  : 'Trivia questions will be selected exclusively from this continent.'}
-              </p>
             </div>
 
             {/* Continent selection grid */}
             <div className="grid grid-cols-2 gap-1.5">
               {REVIEW_CONTINENT_OPTIONS.map((c) => {
                 const isSelected = selectedContinentId === c.id;
+                const cName = isEs ? c.name_es : c.name_en;
                 return (
                   <button
                     key={c.id}
                     type="button"
-                    onClick={() => onSelectContinent(c.id)}
-                    className={`p-1.5 sm:p-2 rounded-xl border text-left transition-all flex items-center gap-1.5 ${
+                    onClick={() => {
+                      onSelectContinent(c.id);
+                      speakGeoName(cName, currentLang, true);
+                    }}
+                    onMouseEnter={() =>
+                      setHoveredTip({
+                        title: cName,
+                        text: isEs
+                          ? `Genera preguntas de trivia exclusivas de ${cName}.`
+                          : `Generates trivia questions exclusively from ${cName}.`,
+                      })
+                    }
+                    onMouseLeave={() => setHoveredTip(null)}
+                    className={`p-1.5 sm:p-2 rounded-xl border text-left transition-all flex items-center gap-1.5 cursor-pointer ${
                       isSelected
                         ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400/30 text-white font-bold'
                         : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
@@ -315,111 +326,105 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
                   >
                     <span className="text-base shrink-0">{c.icon}</span>
                     <div className="min-w-0">
-                      <div className="text-[11px] font-bold truncate">
-                        {isEs ? c.name_es : c.name_en}
-                      </div>
+                      <div className="text-[11px] font-bold truncate">{cName}</div>
                     </div>
                   </button>
                 );
               })}
             </div>
 
-            {/* Step 2: Topic Selection */}
-            <div className="text-left space-y-0.5 pt-1 border-t border-slate-800">
+            {/* Step 2: Topic Selection (clean buttons, explanations on hover only) */}
+            <div className="text-left pt-1 border-t border-slate-800">
               <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
                 <Target className="w-3.5 h-3.5 text-amber-400" />
-                <span>{isEs ? 'Paso 2: Selecciona un Tema' : 'Step 2: Select a Topic'}</span>
+                <span>{isEs ? 'Paso 2: Tema' : 'Step 2: Topic'}</span>
               </h3>
-              <p className="text-[10.5px] text-slate-300">
-                {isEs ? '¿Qué desafío cartográfico deseas responder?' : 'Which map challenge do you want to play?'}
-              </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-1.5">
+            <div className="grid grid-cols-3 gap-1.5">
               {/* Option: Países */}
               <button
                 type="button"
                 onClick={() => onSelectFlavor('countries')}
-                className={`p-2 rounded-xl border text-left transition-all flex items-center justify-between ${
+                onMouseEnter={() =>
+                  setHoveredTip({
+                    title: isEs ? 'Países' : 'Countries',
+                    text: isEs
+                      ? 'Se nombra un país del continente; encuéntralo y haz clic sobre él.'
+                      : 'A country is named; find and click directly on it.',
+                  })
+                }
+                onMouseLeave={() => setHoveredTip(null)}
+                className={`p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                   selectedFlavor === 'countries'
                     ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400/30 text-white'
                     : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center shrink-0">
-                    <Compass className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold">
-                      {isEs ? 'Países' : 'Countries'}
-                    </div>
-                    <div className="text-[9.5px] text-slate-400 leading-tight">
-                      {isEs
-                        ? 'Se nombra un país del continente; encuéntralo y haz clic sobre él.'
-                        : 'A country is named; find and click directly on it.'}
-                    </div>
-                  </div>
+                <div className="w-7 h-7 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center shrink-0">
+                  <Compass className="w-3.5 h-3.5" />
                 </div>
-                {selectedFlavor === 'countries' && <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+                <span className="text-xs font-bold">{isEs ? 'Países' : 'Countries'}</span>
               </button>
 
               {/* Option: Capitales */}
               <button
                 type="button"
                 onClick={() => onSelectFlavor('capitals')}
-                className={`p-2 rounded-xl border text-left transition-all flex items-center justify-between ${
+                onMouseEnter={() =>
+                  setHoveredTip({
+                    title: isEs ? 'Capitales' : 'Capitals',
+                    text: isEs
+                      ? 'Se da la capital; identifica y pulsa el país correspondiente.'
+                      : 'Given a capital; identify and click its corresponding country.',
+                  })
+                }
+                onMouseLeave={() => setHoveredTip(null)}
+                className={`p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                   selectedFlavor === 'capitals'
                     ? 'bg-sky-500/20 border-sky-400 ring-2 ring-sky-400/30 text-white'
                     : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-sky-400/20 text-sky-300 flex items-center justify-center shrink-0">
-                    <Landmark className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold">
-                      {isEs ? 'Capitales' : 'Capitals'}
-                    </div>
-                    <div className="text-[9.5px] text-slate-400 leading-tight">
-                      {isEs
-                        ? 'Se da la capital; identifica y pulsa el país correspondiente.'
-                        : 'Given a capital; identify and click its corresponding country.'}
-                    </div>
-                  </div>
+                <div className="w-7 h-7 rounded-lg bg-sky-400/20 text-sky-300 flex items-center justify-center shrink-0">
+                  <Landmark className="w-3.5 h-3.5" />
                 </div>
-                {selectedFlavor === 'capitals' && <CheckCircle2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />}
+                <span className="text-xs font-bold">{isEs ? 'Capitales' : 'Capitals'}</span>
               </button>
 
               {/* Option: Banderas */}
               <button
                 type="button"
                 onClick={() => onSelectFlavor('flags')}
-                className={`p-2 rounded-xl border text-left transition-all flex items-center justify-between ${
+                onMouseEnter={() =>
+                  setHoveredTip({
+                    title: isEs ? 'Banderas' : 'Flags',
+                    text: isEs
+                      ? 'Observa la bandera oficial e identifica el país en el mapa.'
+                      : 'View the official flag and identify the country on the map.',
+                  })
+                }
+                onMouseLeave={() => setHoveredTip(null)}
+                className={`p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                   selectedFlavor === 'flags'
                     ? 'bg-rose-500/20 border-rose-400 ring-2 ring-rose-400/30 text-white'
                     : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-rose-400/20 text-rose-300 flex items-center justify-center shrink-0">
-                    <Flag className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold">
-                      {isEs ? 'Banderas' : 'Flags'}
-                    </div>
-                    <div className="text-[9.5px] text-slate-400 leading-tight">
-                      {isEs
-                        ? 'Observa la bandera oficial e identifica el país en el mapa.'
-                        : 'View the official flag and identify the country on the map.'}
-                    </div>
-                  </div>
+                <div className="w-7 h-7 rounded-lg bg-rose-400/20 text-rose-300 flex items-center justify-center shrink-0">
+                  <Flag className="w-3.5 h-3.5" />
                 </div>
-                {selectedFlavor === 'flags' && <CheckCircle2 className="w-3.5 h-3.5 text-rose-400 shrink-0" />}
+                <span className="text-xs font-bold">{isEs ? 'Banderas' : 'Flags'}</span>
               </button>
             </div>
+
+            {/* Hover-only explanation bar */}
+            {hoveredTip && (
+              <div className="px-2.5 py-1.5 rounded-xl bg-slate-950/90 border border-amber-400/35 text-[10.5px] text-slate-200 leading-snug animate-game-tooltip">
+                <span className="font-bold text-amber-300 mr-1">{hoveredTip.title}:</span>
+                <span>{hoveredTip.text}</span>
+              </div>
+            )}
 
             {/* Scoring rules info box */}
             <div className="p-2 sm:p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[10.5px] text-amber-200/90 space-y-1">
@@ -520,10 +525,33 @@ export const PlayTriviaPanel: React.FC<PlayTriviaPanelProps> = ({
 
             {/* Question Card */}
             <div className="bg-gradient-to-b from-slate-800/80 to-slate-900/90 border border-slate-700/90 rounded-2xl p-2.5 sm:p-3 space-y-2 shadow-lg">
-              <div className="space-y-0.5">
+              <div className="flex items-start justify-between gap-2">
                 <h3 className="text-xs sm:text-sm font-black text-white leading-snug">
                   {isEs ? question.question_es : question.question_en}
                 </h3>
+                {selectedFlavor !== 'flags' && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      speakGeoName(
+                        selectedFlavor === 'capitals'
+                          ? isEs
+                            ? question.capital_es
+                            : question.capital_en
+                          : isEs
+                          ? question.targetName_es
+                          : question.targetName_en,
+                        currentLang,
+                        true
+                      )
+                    }
+                    title={isEs ? 'Escuchar pronunciación' : 'Listen to pronunciation'}
+                    aria-label={isEs ? 'Escuchar pronunciación' : 'Listen to pronunciation'}
+                    className="p-1.5 rounded-lg bg-amber-400/15 hover:bg-amber-400/25 text-amber-300 border border-amber-400/30 transition-colors shrink-0 cursor-pointer"
+                  >
+                    <Volume2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
               {/* Special Visual: National Flag for Flags Flavor */}

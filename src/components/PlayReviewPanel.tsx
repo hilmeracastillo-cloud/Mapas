@@ -21,8 +21,9 @@ import {
   ExternalLink,
   ChevronRight,
   ChevronLeft,
-  X
+  Volume2,
 } from 'lucide-react';
+import { speakGeoName } from '../utils/speechService';
 
 export const REVIEW_CONTINENT_OPTIONS: ReviewContinentOption[] = [
   {
@@ -117,6 +118,7 @@ export const PlayReviewPanel: React.FC<PlayReviewPanelProps> = ({
 }) => {
   const isEs = currentLang === 'es';
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  const [hoveredTip, setHoveredTip] = useState<{ title: string; text: string } | null>(null);
   const panelRef = useRef<HTMLElement>(null);
 
   // Stop Leaflet from stealing scroll events on the review panel
@@ -304,28 +306,36 @@ export const PlayReviewPanel: React.FC<PlayReviewPanelProps> = ({
             ========================================================================= */}
         {!isSessionActive && (
           <div className="space-y-2.5">
-            <div className="text-left space-y-0.5">
+            <div className="text-left">
               <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-sky-400" />
-                <span>{isEs ? 'Paso 1: Selecciona un Continente' : 'Step 1: Select a Continent'}</span>
+                <span>{isEs ? 'Paso 1: Continente' : 'Step 1: Continent'}</span>
               </h3>
-              <p className="text-[10.5px] text-slate-300 leading-snug">
-                {isEs
-                  ? 'El repaso presentará al azar la totalidad de los países de este continente.'
-                  : 'Review will present all countries in this continent in random order.'}
-              </p>
             </div>
 
             {/* Continent selection grid */}
             <div className="grid grid-cols-2 gap-1.5">
               {REVIEW_CONTINENT_OPTIONS.map((c) => {
                 const isSelected = selectedContinentId === c.id;
+                const cName = isEs ? c.name_es : c.name_en;
                 return (
                   <button
                     key={c.id}
                     type="button"
-                    onClick={() => onSelectContinent(c.id)}
-                    className={`p-1.5 sm:p-2 rounded-xl border text-left transition-all flex items-center gap-1.5 ${
+                    onClick={() => {
+                      onSelectContinent(c.id);
+                      speakGeoName(cName, currentLang, true);
+                    }}
+                    onMouseEnter={() =>
+                      setHoveredTip({
+                        title: cName,
+                        text: isEs
+                          ? `Presenta todos los países de ${cName} en el mapa.`
+                          : `Presents all countries of ${cName} on the map.`,
+                      })
+                    }
+                    onMouseLeave={() => setHoveredTip(null)}
+                    className={`p-1.5 sm:p-2 rounded-xl border text-left transition-all flex items-center gap-1.5 cursor-pointer ${
                       isSelected
                         ? 'bg-sky-500/20 border-sky-400 ring-2 ring-sky-400/30 text-white font-bold'
                         : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
@@ -333,111 +343,105 @@ export const PlayReviewPanel: React.FC<PlayReviewPanelProps> = ({
                   >
                     <span className="text-base shrink-0">{c.icon}</span>
                     <div className="min-w-0">
-                      <div className="text-[11px] font-bold truncate">
-                        {isEs ? c.name_es : c.name_en}
-                      </div>
+                      <div className="text-[11px] font-bold truncate">{cName}</div>
                     </div>
                   </button>
                 );
               })}
             </div>
 
-            {/* Step 2: Topic Selection */}
-            <div className="text-left space-y-0.5 pt-1 border-t border-slate-800">
+            {/* Step 2: Topic Selection (clean buttons, explanations on hover only) */}
+            <div className="text-left pt-1 border-t border-slate-800">
               <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
                 <Target className="w-3.5 h-3.5 text-amber-400" />
-                <span>{isEs ? 'Paso 2: Selecciona un Tema' : 'Step 2: Select a Topic'}</span>
+                <span>{isEs ? 'Paso 2: Tema' : 'Step 2: Topic'}</span>
               </h3>
-              <p className="text-[10.5px] text-slate-300">
-                {isEs ? '¿Qué elemento deseas repasar y localizar?' : 'What element do you want to review and locate?'}
-              </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-1.5">
+            <div className="grid grid-cols-3 gap-1.5">
               {/* Option: Países */}
               <button
                 type="button"
                 onClick={() => onSelectTopic('countries')}
-                className={`p-2 rounded-xl border text-left transition-all flex items-center justify-between ${
+                onMouseEnter={() =>
+                  setHoveredTip({
+                    title: isEs ? 'Países' : 'Countries',
+                    text: isEs
+                      ? 'Muestra el nombre del país, su pronunciación y su ubicación en el mapa.'
+                      : 'Shows country name, pronunciation, and location on the map.',
+                  })
+                }
+                onMouseLeave={() => setHoveredTip(null)}
+                className={`p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                   selectedTopic === 'countries'
                     ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400/30 text-white'
                     : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center shrink-0">
-                    <Compass className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold">
-                      {isEs ? 'Países' : 'Countries'}
-                    </div>
-                    <div className="text-[9.5px] text-slate-400 leading-tight">
-                      {isEs
-                        ? 'Nombre del país y ubicación geográfica en el mapa mundi.'
-                        : 'Country name and location on the world map.'}
-                    </div>
-                  </div>
+                <div className="w-7 h-7 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center shrink-0">
+                  <Compass className="w-3.5 h-3.5" />
                 </div>
-                {selectedTopic === 'countries' && <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+                <span className="text-xs font-bold">{isEs ? 'Países' : 'Countries'}</span>
               </button>
 
               {/* Option: Capitales */}
               <button
                 type="button"
                 onClick={() => onSelectTopic('capitals')}
-                className={`p-2 rounded-xl border text-left transition-all flex items-center justify-between ${
+                onMouseEnter={() =>
+                  setHoveredTip({
+                    title: isEs ? 'Capitales' : 'Capitals',
+                    text: isEs
+                      ? 'Destaca cada capital con su pronunciación y posición exacta.'
+                      : 'Highlights each capital with pronunciation and exact location.',
+                  })
+                }
+                onMouseLeave={() => setHoveredTip(null)}
+                className={`p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                   selectedTopic === 'capitals'
                     ? 'bg-sky-500/20 border-sky-400 ring-2 ring-sky-400/30 text-white'
                     : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-sky-400/20 text-sky-300 flex items-center justify-center shrink-0">
-                    <Landmark className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold">
-                      {isEs ? 'Capitales' : 'Capitals'}
-                    </div>
-                    <div className="text-[9.5px] text-slate-400 leading-tight">
-                      {isEs
-                        ? 'Capital en letras destacadas y su posición exacta.'
-                        : 'Capital in prominent letters and its exact position.'}
-                    </div>
-                  </div>
+                <div className="w-7 h-7 rounded-lg bg-sky-400/20 text-sky-300 flex items-center justify-center shrink-0">
+                  <Landmark className="w-3.5 h-3.5" />
                 </div>
-                {selectedTopic === 'capitals' && <CheckCircle2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />}
+                <span className="text-xs font-bold">{isEs ? 'Capitales' : 'Capitals'}</span>
               </button>
 
               {/* Option: Banderas */}
               <button
                 type="button"
                 onClick={() => onSelectTopic('flags')}
-                className={`p-2 rounded-xl border text-left transition-all flex items-center justify-between ${
+                onMouseEnter={() =>
+                  setHoveredTip({
+                    title: isEs ? 'Banderas' : 'Flags',
+                    text: isEs
+                      ? 'Presenta la bandera oficial en gran formato junto al país resaltado.'
+                      : 'Displays the official flag in large format with the highlighted country.',
+                  })
+                }
+                onMouseLeave={() => setHoveredTip(null)}
+                className={`p-2 rounded-xl border text-center transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
                   selectedTopic === 'flags'
                     ? 'bg-rose-500/20 border-rose-400 ring-2 ring-rose-400/30 text-white'
                     : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-rose-400/20 text-rose-300 flex items-center justify-center shrink-0">
-                    <Flag className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold">
-                      {isEs ? 'Banderas' : 'Flags'}
-                    </div>
-                    <div className="text-[9.5px] text-slate-400 leading-tight">
-                      {isEs
-                        ? 'Bandera oficial en gran formato y resalta el país.'
-                        : 'Official flag in large format and country highlight.'}
-                    </div>
-                  </div>
+                <div className="w-7 h-7 rounded-lg bg-rose-400/20 text-rose-300 flex items-center justify-center shrink-0">
+                  <Flag className="w-3.5 h-3.5" />
                 </div>
-                {selectedTopic === 'flags' && <CheckCircle2 className="w-3.5 h-3.5 text-rose-400 shrink-0" />}
+                <span className="text-xs font-bold">{isEs ? 'Banderas' : 'Flags'}</span>
               </button>
             </div>
+
+            {/* Hover-only explanation bar */}
+            {hoveredTip && (
+              <div className="px-2.5 py-1.5 rounded-xl bg-slate-950/90 border border-sky-400/35 text-[10.5px] text-slate-200 leading-snug animate-game-tooltip">
+                <span className="font-bold text-sky-300 mr-1">{hoveredTip.title}:</span>
+                <span>{hoveredTip.text}</span>
+              </div>
+            )}
 
             {/* Start Button - smaller and compact */}
             <div className="pt-1">
@@ -493,9 +497,21 @@ export const PlayReviewPanel: React.FC<PlayReviewPanelProps> = ({
                     <span className="text-[9.5px] font-mono uppercase text-rose-400 font-bold tracking-wider block">
                       {isEs ? 'Bandera Oficial' : 'Official Flag'}
                     </span>
-                    <h3 className="text-base sm:text-lg font-black text-white mt-0.5 leading-snug">
-                      {isEs ? currentCountry.name_es : currentCountry.name_en}
-                    </h3>
+                    <div className="flex items-center justify-center gap-1.5 mt-0.5">
+                      <h3 className="text-base sm:text-lg font-black text-white leading-snug">
+                        {isEs ? currentCountry.name_es : currentCountry.name_en}
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          speakGeoName(isEs ? currentCountry.name_es : currentCountry.name_en, currentLang, true)
+                        }
+                        title={isEs ? 'Escuchar pronunciación' : 'Listen to pronunciation'}
+                        className="p-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 transition-colors cursor-pointer"
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -508,9 +524,16 @@ export const PlayReviewPanel: React.FC<PlayReviewPanelProps> = ({
                       <Landmark className="w-3.5 h-3.5" />
                       <span>{isEs ? 'Capital Oficial' : 'Official Capital'}</span>
                     </span>
-                    <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 font-bold">
-                      {currentCountry.iso3}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        speakGeoName(isEs ? currentCountry.capital_es : currentCountry.capital_en, currentLang, true)
+                      }
+                      title={isEs ? 'Escuchar pronunciación' : 'Listen to pronunciation'}
+                      className="p-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 transition-colors cursor-pointer"
+                    >
+                      <Volume2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
 
                   {/* PROMINENTLY ENLARGED CAPITAL FONT SIZE */}
@@ -540,9 +563,16 @@ export const PlayReviewPanel: React.FC<PlayReviewPanelProps> = ({
                       <Compass className="w-3.5 h-3.5" />
                       <span>{isEs ? 'País Soberano' : 'Sovereign Country'}</span>
                     </span>
-                    <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">
-                      {currentCountry.iso3}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        speakGeoName(isEs ? currentCountry.name_es : currentCountry.name_en, currentLang, true)
+                      }
+                      title={isEs ? 'Escuchar pronunciación' : 'Listen to pronunciation'}
+                      className="p-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 transition-colors cursor-pointer"
+                    >
+                      <Volume2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
 
                   <div className="flex items-center gap-2.5 py-0.5">

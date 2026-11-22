@@ -16,11 +16,21 @@ import {
   ArrowLeft,
   Volume2,
   VolumeX,
+  Music,
   Trophy,
   MapPin,
 } from 'lucide-react';
-import { playHoverSound, playSelectSound, playBackSound } from '../utils/gameAudio';
-import GAME_BG_IMG from '../assets/images/game_title_world_bg_1795287459340.jpg';
+import {
+  playHoverSound,
+  playSelectSound,
+  playBackSound,
+  startMenuMusic,
+  stopMenuMusic,
+  unlockMenuMusic,
+  subscribeMenuMusicStatus,
+} from '../utils/gameAudio';
+import { speakGeoName } from '../utils/speechService';
+import { SpinningGlobe } from './SpinningGlobe';
 
 export type GameMenuView =
   | 'main'
@@ -66,6 +76,32 @@ const CONTINENT_TABS: { id: ContinentId; es: string; en: string }[] = [
   { id: 'Oceania', es: 'Oceanía', en: 'Oceania' },
 ];
 
+// Deterministic twinkling stars for the deep-sky globe backdrop
+const BACKDROP_STARS = [
+  { left: '6%', top: '12%', size: 2, delay: '0.1s', dur: '3.2s' },
+  { left: '14%', top: '28%', size: 3, delay: '1.4s', dur: '4.1s' },
+  { left: '22%', top: '10%', size: 2, delay: '2.2s', dur: '3.5s' },
+  { left: '31%', top: '20%', size: 2.5, delay: '0.7s', dur: '3.9s' },
+  { left: '42%', top: '9%', size: 2, delay: '1.8s', dur: '3.1s' },
+  { left: '58%', top: '11%', size: 2.5, delay: '0.4s', dur: '4.0s' },
+  { left: '69%', top: '19%', size: 2, delay: '2.5s', dur: '3.4s' },
+  { left: '78%', top: '10%', size: 3, delay: '1.1s', dur: '3.8s' },
+  { left: '88%', top: '22%', size: 2, delay: '0.2s', dur: '3.3s' },
+  { left: '94%', top: '14%', size: 2.5, delay: '1.9s', dur: '4.2s' },
+  { left: '9%', top: '48%', size: 2, delay: '2.8s', dur: '3.6s' },
+  { left: '18%', top: '62%', size: 2.5, delay: '0.9s', dur: '4.3s' },
+  { left: '27%', top: '42%', size: 2, delay: '1.6s', dur: '3.2s' },
+  { left: '73%', top: '44%', size: 2.5, delay: '0.5s', dur: '3.7s' },
+  { left: '83%', top: '58%', size: 3, delay: '2.1s', dur: '4.0s' },
+  { left: '91%', top: '42%', size: 2, delay: '1.2s', dur: '3.5s' },
+  { left: '12%', top: '78%', size: 2, delay: '0.6s', dur: '3.9s' },
+  { left: '24%', top: '84%', size: 2.5, delay: '2.4s', dur: '3.3s' },
+  { left: '77%', top: '76%', size: 2, delay: '1.5s', dur: '4.1s' },
+  { left: '89%', top: '82%', size: 2.5, delay: '0.3s', dur: '3.4s' },
+  { left: '4%', top: '34%', size: 2, delay: '1.7s', dur: '3.8s' },
+  { left: '96%', top: '66%', size: 2, delay: '2.6s', dur: '3.6s' },
+];
+
 export const GameMenuStage: React.FC<GameMenuStageProps> = ({
   menuView,
   currentLang,
@@ -85,13 +121,49 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
 }) => {
   const isEs = currentLang === 'es';
   const [hoveredTip, setHoveredTip] = useState<{ title: string; text: string } | null>(null);
-  const [bgFailed, setBgFailed] = useState(false);
   const [selectedContinent, setSelectedContinent] = useState<ContinentId>('South America');
+  const [musicPlaying, setMusicPlaying] = useState(false);
 
   // Clear hover tooltip whenever menu view switches
   useEffect(() => {
     setHoveredTip(null);
   }, [menuView]);
+
+  // Subscribe to actual Web Audio music playback state
+  useEffect(() => {
+    return subscribeMenuMusicStatus(setMusicPlaying);
+  }, []);
+
+  // Real orchestral intro music lifecycle: plays ONLY on the main title screen; stops immediately once any option is selected
+  const isMainTitle = menuView === 'main';
+
+  useEffect(() => {
+    if (isMainTitle && soundEnabled) {
+      startMenuMusic();
+    } else {
+      stopMenuMusic();
+    }
+    return () => {
+      stopMenuMusic();
+    };
+  }, [isMainTitle, soundEnabled]);
+
+  // Seamless autoplay unlock on first tap/click/key press while on the main title screen
+  useEffect(() => {
+    if (!isMainTitle || !soundEnabled || musicPlaying) return;
+    const handleUnlock = (e: Event) => {
+      // If user clicked directly on one of the main menu option buttons, let that option stop intro music cleanly
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('[data-main-menu-option="true"]')) return;
+      unlockMenuMusic();
+    };
+    window.addEventListener('pointerdown', handleUnlock, { passive: true });
+    window.addEventListener('keydown', handleUnlock, { passive: true });
+    return () => {
+      window.removeEventListener('pointerdown', handleUnlock);
+      window.removeEventListener('keydown', handleUnlock);
+    };
+  }, [isMainTitle, soundEnabled, musicPlaying]);
 
   // Mark intro as completed after entrance animation finishes
   useEffect(() => {
@@ -122,6 +194,7 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
       themeClass:
         'bg-gradient-to-b from-sky-400 to-sky-600 border-b-4 border-sky-800 hover:brightness-110 text-white shadow-[0_10px_28px_rgba(14,165,233,0.4)]',
       onClick: () => {
+        stopMenuMusic();
         playSelectSound(soundEnabled);
         onChangeMenuView('explore');
       },
@@ -136,6 +209,7 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
       themeClass:
         'bg-gradient-to-b from-amber-300 to-amber-500 border-b-4 border-amber-700 hover:brightness-105 text-slate-950 shadow-[0_10px_28px_rgba(245,158,11,0.45)]',
       onClick: () => {
+        stopMenuMusic();
         playSelectSound(soundEnabled);
         onChangeMenuView('play');
       },
@@ -150,6 +224,7 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
       themeClass:
         'bg-gradient-to-b from-emerald-400 to-emerald-600 border-b-4 border-emerald-800 hover:brightness-110 text-white shadow-[0_10px_28px_rgba(16,185,129,0.4)]',
       onClick: () => {
+        stopMenuMusic();
         playSelectSound(soundEnabled);
         onChangeMenuView('learn');
       },
@@ -333,7 +408,7 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
 
   const renderButtonRow = (buttons: GameButtonDef[], staggerBaseMs = 0) => (
     <div
-      className={`w-full flex flex-wrap items-center justify-center gap-3 sm:gap-4 ${
+      className={`w-full flex flex-wrap items-center justify-center gap-2 sm:gap-3.5 ${
         buttons.length <= 3 ? 'max-w-3xl' : 'max-w-4xl'
       }`}
     >
@@ -343,6 +418,7 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
           <button
             key={btn.id}
             type="button"
+            data-main-menu-option={menuView === 'main' ? 'true' : undefined}
             onClick={btn.onClick}
             onMouseEnter={() => {
               playHoverSound(soundEnabled);
@@ -356,8 +432,10 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
                 ? { animationDelay: `${staggerBaseMs + idx * 110}ms` }
                 : undefined
             }
-            className={`group relative inline-flex items-center justify-center gap-2.5 sm:gap-3 px-5 sm:px-7 py-3.5 sm:py-4 rounded-2xl font-display font-extrabold text-base sm:text-xl tracking-tight whitespace-nowrap cursor-pointer transition-all duration-150 hover:-translate-y-1 active:translate-y-0.5 active:border-b-2 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-amber-300 ${
-              buttons.length <= 3 ? 'min-w-[148px] sm:min-w-[190px]' : 'min-w-[136px] sm:min-w-[158px]'
+            className={`group relative inline-flex items-center justify-center gap-2 sm:gap-2.5 px-4 sm:px-6 py-2.5 sm:py-3.5 [@media(max-height:460px)]:py-2 [@media(max-height:460px)]:px-4 rounded-2xl font-display font-extrabold text-sm sm:text-lg lg:text-xl tracking-tight whitespace-nowrap cursor-pointer transition-all duration-150 hover:-translate-y-1 active:translate-y-0.5 active:border-b-2 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-amber-300 ${
+              buttons.length <= 3
+                ? 'min-w-[126px] sm:min-w-[178px]'
+                : 'min-w-[116px] sm:min-w-[152px]'
             } ${btn.themeClass} ${useIntroPop ? 'animate-game-btn' : ''}`}
           >
             <span className="transition-transform duration-150 group-hover:scale-110 shrink-0">
@@ -391,64 +469,94 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
       ? 'Países del Mundo'
       : 'Countries of the World';
 
-  const defaultHintText =
-    menuView === 'main'
-      ? isEs
-        ? 'Pasa el cursor sobre una opción para ver qué hace.'
-        : 'Hover over an option to see what it does.'
-      : menuView === 'explore'
-      ? isEs
-        ? 'Elige qué parte del planeta quieres explorar hoy.'
-        : 'Pick which part of the planet you want to explore.'
-      : menuView === 'play'
-      ? isEs
-        ? 'Elige un desafío en el mapa para empezar a jugar.'
-        : 'Choose a map challenge to start playing.'
-      : menuView === 'learn'
-      ? isEs
-        ? 'Elige un área para empezar a aprender.'
-        : 'Choose an area to start learning.'
-      : isEs
-      ? 'Elige una lección visual o haz clic en su quiz.'
-      : 'Pick a visual lesson or launch its quiz.';
+  const handleSoundButtonClick = () => {
+    if (isMainTitle && soundEnabled && !musicPlaying) {
+      // Browser paused autoplay until first gesture: activate orchestral intro on tap
+      unlockMenuMusic();
+      return;
+    }
+    onToggleSound();
+  };
+
+  const showTip = (title: string, text: string) => {
+    playHoverSound(soundEnabled);
+    setHoveredTip({ title, text });
+  };
+  const clearTip = () => setHoveredTip(null);
 
   return (
-    <div className="relative h-dvh w-screen overflow-hidden bg-slate-950 text-white select-none flex flex-col">
-      {/* FULL-BLEED GAME WORLD BACKDROP */}
+    <div className="relative h-dvh w-screen overflow-hidden bg-[#040d21] text-white select-none flex flex-col">
+      {/* DEEP COSMIC ADVENTURE SKY BACKDROP WITH TWINKLING STARS & AURORA */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {!bgFailed ? (
-          <img
-            src={GAME_BG_IMG}
-            alt={isEs ? 'Escenario ilustrado del planeta Tierra' : 'Illustrated planet Earth game scene'}
-            referrerPolicy="no-referrer"
-            onError={() => setBgFailed(true)}
-            className={`w-full h-full object-cover object-center ${
-              shouldAnimateIntro ? 'animate-game-bg-reveal' : 'animate-game-bg-drift'
-            }`}
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-b from-slate-900 via-sky-950 to-slate-950" />
-        )}
-        {/* Measured scrim: keeps globe luminous while giving crisp contrast to title & lower buttons */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              menuView === 'learn_countries'
-                ? 'linear-gradient(180deg, rgba(6,16,36,0.72) 0%, rgba(6,16,36,0.78) 100%)'
-                : 'linear-gradient(180deg, rgba(6,16,36,0.58) 0%, rgba(6,16,36,0.12) 38%, rgba(6,16,36,0.22) 56%, rgba(6,16,36,0.86) 100%)',
+              'radial-gradient(ellipse 80% 70% at 50% 45%, #0c2b59 0%, #071938 46%, #030a1a 100%)',
           }}
         />
+        {/* Subtle luminous horizon glow behind the spinning globe */}
+        <div
+          className="absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 w-[min(78vw,720px)] h-[min(78vw,720px)] rounded-full opacity-55"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(56,189,248,0.26) 0%, rgba(16,185,129,0.09) 42%, rgba(2,6,23,0) 72%)',
+          }}
+        />
+        {/* Twinkling starfield */}
+        {BACKDROP_STARS.map((star, idx) => (
+          <span
+            key={idx}
+            className="absolute rounded-full bg-sky-100 animate-game-star"
+            style={{
+              left: star.left,
+              top: star.top,
+              width: `${star.size}px`,
+              height: `${star.size}px`,
+              animationDelay: star.delay,
+              animationDuration: star.dur,
+              boxShadow: '0 0 6px rgba(186, 230, 253, 0.85)',
+            }}
+          />
+        ))}
+        {/* Ambient permanently spinning globe watermark when browsing full country atlas */}
+        {menuView === 'learn_countries' && (
+          <div className="absolute -right-24 -bottom-24 w-[380px] h-[380px] opacity-25">
+            <SpinningGlobe className="w-full h-full" />
+          </div>
+        )}
       </div>
 
       {/* TOP FLOATING GAME HUD (MINIMAL) */}
-      <header className="relative z-20 w-full px-4 sm:px-6 pt-3 sm:pt-4 flex items-center justify-between gap-4 shrink-0">
+      <header className="relative z-20 w-full px-3 sm:px-6 pt-2 sm:pt-3.5 flex items-center justify-between gap-3 shrink-0">
         <div>
           {menuView !== 'main' && (
             <button
               type="button"
               onClick={handleBack}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-950/70 hover:bg-slate-900/90 backdrop-blur-md border border-white/20 text-white font-bold text-sm transition-all active:scale-95 whitespace-nowrap cursor-pointer shadow-lg"
+              onMouseEnter={() =>
+                showTip(
+                  menuView === 'learn_fundamentals' || menuView === 'learn_countries'
+                    ? isEs
+                      ? 'Volver'
+                      : 'Back'
+                    : isEs
+                    ? 'Menú'
+                    : 'Menu',
+                  isEs
+                    ? 'Regresa a la pantalla anterior del menú.'
+                    : 'Return to the previous menu screen.'
+                )
+              }
+              onMouseLeave={clearTip}
+              onFocus={() =>
+                setHoveredTip({
+                  title: isEs ? 'Volver' : 'Back',
+                  text: isEs ? 'Regresa a la pantalla anterior del menú.' : 'Return to the previous menu screen.',
+                })
+              }
+              onBlur={clearTip}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:py-2 rounded-xl bg-slate-950/75 hover:bg-slate-900/95 backdrop-blur-md border border-white/20 text-white font-bold text-xs sm:text-sm transition-all active:scale-95 whitespace-nowrap cursor-pointer shadow-lg"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>
@@ -467,12 +575,90 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={onToggleSound}
-            aria-label={soundEnabled ? (isEs ? 'Silenciar sonidos' : 'Mute sounds') : isEs ? 'Activar sonidos' : 'Enable sounds'}
-            title={soundEnabled ? (isEs ? 'Sonido activado' : 'Sound on') : isEs ? 'Sonido silenciado' : 'Sound muted'}
-            className="p-2.5 rounded-xl bg-slate-950/70 hover:bg-slate-900/90 backdrop-blur-md border border-white/20 text-white transition-all active:scale-95 cursor-pointer shadow-lg"
+            onClick={handleSoundButtonClick}
+            onMouseEnter={() =>
+              showTip(
+                isMainTitle ? (isEs ? 'Música y Voz' : 'Music & Voice') : isEs ? 'Voz y Sonido' : 'Voice & Sound',
+                !soundEnabled
+                  ? isEs
+                    ? 'Activa la música orquestal de entrada y la pronunciación en voz alta.'
+                    : 'Enable the orchestral intro music and spoken pronunciation.'
+                  : isMainTitle && !musicPlaying
+                  ? isEs
+                    ? 'Inicia la música sinfónica orquestal de introducción.'
+                    : 'Start the symphonic orchestral intro music.'
+                  : isEs
+                  ? 'Silencia el sonido y la pronunciación en voz alta.'
+                  : 'Mute sound and spoken pronunciation.'
+              )
+            }
+            onMouseLeave={clearTip}
+            onFocus={() =>
+              setHoveredTip({
+                title: isMainTitle ? (isEs ? 'Música y Voz' : 'Music & Voice') : isEs ? 'Voz y Sonido' : 'Voice & Sound',
+                text: isEs
+                  ? 'Activa o silencia el audio y la pronunciación en voz alta.'
+                  : 'Toggle audio and spoken pronunciation.',
+              })
+            }
+            onBlur={clearTip}
+            aria-label={
+              !soundEnabled
+                ? isEs
+                  ? 'Activar sonido'
+                  : 'Enable sound'
+                : isMainTitle && !musicPlaying
+                ? isEs
+                  ? 'Iniciar música orquestal'
+                  : 'Start orchestral music'
+                : isEs
+                ? 'Silenciar sonido'
+                : 'Mute sound'
+            }
+            className={`inline-flex items-center gap-2 px-3 py-1.5 sm:py-2 rounded-xl backdrop-blur-md border text-xs sm:text-sm font-bold transition-all active:scale-95 whitespace-nowrap cursor-pointer shadow-lg ${
+              !soundEnabled
+                ? 'bg-slate-950/70 hover:bg-slate-900/90 border-white/20 text-slate-400'
+                : isMainTitle && musicPlaying
+                ? 'bg-slate-950/75 hover:bg-slate-900/95 border-amber-300/45 text-amber-200'
+                : isMainTitle && !musicPlaying
+                ? 'bg-amber-400/20 hover:bg-amber-400/30 border-amber-300/70 text-amber-200 animate-pulse'
+                : 'bg-slate-950/75 hover:bg-slate-900/95 border-white/20 text-amber-200'
+            }`}
           >
-            {soundEnabled ? <Volume2 className="w-4 h-4 text-amber-300" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
+            {!soundEnabled ? (
+              <>
+                <VolumeX className="w-4 h-4 text-slate-400" />
+                <span className="hidden sm:inline">{isEs ? 'Silencio' : 'Muted'}</span>
+              </>
+            ) : isMainTitle && musicPlaying ? (
+              <>
+                <span className="inline-flex items-end gap-[2px] h-3.5" aria-hidden="true">
+                  <span
+                    className="w-[3px] h-full rounded-full bg-amber-300 animate-game-eq"
+                    style={{ animationDelay: '0ms' }}
+                  />
+                  <span
+                    className="w-[3px] h-full rounded-full bg-emerald-300 animate-game-eq"
+                    style={{ animationDelay: '180ms' }}
+                  />
+                  <span
+                    className="w-[3px] h-full rounded-full bg-sky-300 animate-game-eq"
+                    style={{ animationDelay: '340ms' }}
+                  />
+                </span>
+                <span>{isEs ? 'Música' : 'Music'}</span>
+              </>
+            ) : isMainTitle ? (
+              <>
+                <Music className="w-4 h-4 text-amber-300" />
+                <span>{isEs ? 'Activar música' : 'Play music'}</span>
+              </>
+            ) : (
+              <>
+                <Volume2 className="w-4 h-4 text-amber-300" />
+                <span className="hidden sm:inline">{isEs ? 'Sonido' : 'Sound'}</span>
+              </>
+            )}
           </button>
 
           <button
@@ -481,7 +667,25 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
               playHoverSound(soundEnabled);
               onToggleLang();
             }}
-            className="px-3.5 py-2 rounded-xl bg-slate-950/70 hover:bg-slate-900/90 backdrop-blur-md border border-white/20 text-white font-bold text-xs sm:text-sm tracking-wide transition-all active:scale-95 whitespace-nowrap cursor-pointer shadow-lg"
+            onMouseEnter={() =>
+              showTip(
+                isEs ? 'Idioma' : 'Language',
+                isEs
+                  ? 'Cambia los textos y la pronunciación entre Español e Inglés.'
+                  : 'Switch interface text and spoken pronunciation between Spanish and English.'
+              )
+            }
+            onMouseLeave={clearTip}
+            onFocus={() =>
+              setHoveredTip({
+                title: isEs ? 'Idioma' : 'Language',
+                text: isEs
+                  ? 'Cambia los textos y la pronunciación entre Español e Inglés.'
+                  : 'Switch interface text and spoken pronunciation between Spanish and English.',
+              })
+            }
+            onBlur={clearTip}
+            className="px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-slate-950/75 hover:bg-slate-900/95 backdrop-blur-md border border-white/20 text-white font-bold text-xs sm:text-sm tracking-wide transition-all active:scale-95 whitespace-nowrap cursor-pointer shadow-lg"
           >
             {isEs ? 'ES / EN' : 'EN / ES'}
           </button>
@@ -490,35 +694,35 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
 
       {/* CENTER & LOWER STAGE: TITLE SCREEN / SUBMENUS */}
       {menuView !== 'learn_countries' ? (
-        <main className="relative z-10 flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 pb-5 sm:pb-8 flex flex-col items-center justify-between">
-          {/* TOP TITLE EMBLEM (Leaves the illustrated globe visible in the middle!) */}
-          <div className="flex flex-col items-center text-center pt-1 sm:pt-3">
+        <main className="relative z-10 flex-1 min-h-0 w-full max-w-5xl mx-auto px-3 sm:px-6 pb-2.5 sm:pb-6 flex flex-col items-center justify-between gap-1.5 sm:gap-2">
+          {/* TOP TITLE EMBLEM */}
+          <div className="flex flex-col items-center text-center shrink-0">
             {menuView === 'main' ? (
-              <>
+              <div className="flex items-center justify-center gap-2.5 sm:gap-3">
                 <div
-                  className={`w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-amber-400/20 border border-amber-300/50 backdrop-blur-md flex items-center justify-center shadow-[0_0_24px_rgba(251,191,36,0.35)] mb-2 ${
+                  className={`w-9 h-9 sm:w-12 sm:h-12 [@media(max-height:460px)]:w-8 [@media(max-height:460px)]:h-8 rounded-2xl bg-amber-400/20 border border-amber-300/50 backdrop-blur-md flex items-center justify-center shadow-[0_0_24px_rgba(251,191,36,0.35)] shrink-0 ${
                     shouldAnimateIntro ? 'animate-game-compass' : ''
                   }`}
                 >
-                  <Compass className="w-6 h-6 sm:w-7 sm:h-7 text-amber-300" />
+                  <Compass className="w-5 h-5 sm:w-6 sm:h-6 text-amber-300" />
                 </div>
                 <h1
                   className={`font-display font-extrabold tracking-tight text-white drop-shadow-[0_4px_18px_rgba(2,6,23,0.9)] leading-none ${
                     shouldAnimateIntro ? 'animate-game-title' : ''
                   }`}
-                  style={{ fontSize: 'clamp(2.1rem, 5.2vw, 4rem)', textWrap: 'balance' }}
+                  style={{ fontSize: 'clamp(1.5rem, 4.4vw, 3.6rem)', textWrap: 'balance' }}
                 >
                   {isEs ? 'Aprendiendo el Mundo' : 'Learning the World'}
                 </h1>
-              </>
+              </div>
             ) : (
               <div className="animate-game-submenu flex flex-col items-center">
-                <p className="text-xs sm:text-sm font-semibold text-amber-300/90 drop-shadow">
+                <p className="text-[11px] sm:text-xs font-semibold text-amber-300/90 drop-shadow [@media(max-height:440px)]:hidden">
                   {isEs ? 'Aprendiendo el Mundo' : 'Learning the World'}
                 </p>
                 <h1
-                  className="font-display font-extrabold tracking-tight text-white drop-shadow-[0_4px_18px_rgba(2,6,23,0.9)] leading-tight mt-0.5"
-                  style={{ fontSize: 'clamp(1.9rem, 4.4vw, 3.2rem)' }}
+                  className="font-display font-extrabold tracking-tight text-white drop-shadow-[0_4px_18px_rgba(2,6,23,0.9)] leading-tight"
+                  style={{ fontSize: 'clamp(1.4rem, 3.8vw, 2.9rem)' }}
                 >
                   {sectionHeading}
                 </h1>
@@ -526,9 +730,26 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
             )}
           </div>
 
+          {/* CENTERPIECE: PERMANENTLY SPINNING 3D EARTH GLOBE */}
+          <div
+            className={`relative flex-1 min-h-0 flex items-center justify-center w-full ${
+              shouldAnimateIntro && menuView === 'main' ? 'animate-game-globe' : ''
+            }`}
+          >
+            <div
+              className={
+                menuView === 'main'
+                  ? 'w-[clamp(118px,38dvh,350px)] h-[clamp(118px,38dvh,350px)]'
+                  : 'w-[clamp(96px,27dvh,240px)] h-[clamp(96px,27dvh,240px)]'
+              }
+            >
+              <SpinningGlobe className="w-full h-full" />
+            </div>
+          </div>
+
           {/* BOTTOM ACTION DECK + HOVER TOOLTIP RIBBON */}
-          <div className="w-full flex flex-col items-center gap-3.5 sm:gap-4 pb-1 sm:pb-2">
-            {menuView === 'main' && renderButtonRow(mainButtons, 380)}
+          <div className="w-full flex flex-col items-center gap-2 sm:gap-3 shrink-0">
+            {menuView === 'main' && renderButtonRow(mainButtons, 340)}
 
             {menuView === 'explore' && (
               <div className="w-full flex justify-center animate-game-submenu">
@@ -595,22 +816,22 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
               </div>
             )}
 
-            {/* HOVER DESCRIPTION BAR — FIXED MIN-HEIGHT SO ZERO LAYOUT SHIFT */}
+            {/* HOVER DESCRIPTION BAR — APPEARS ONLY ON HOVER/FOCUS (ZERO IDLE TEXT, ZERO LAYOUT SHIFT) */}
             <div
               role="status"
               aria-live="polite"
-              className="w-full max-w-2xl min-h-[52px] sm:min-h-[56px] px-4 sm:px-6 py-2.5 rounded-2xl bg-slate-950/75 backdrop-blur-md border border-white/15 flex items-center justify-center text-center shadow-xl"
+              className="w-full max-w-2xl min-h-[40px] sm:min-h-[48px] [@media(max-height:460px)]:min-h-[34px] flex items-center justify-center"
             >
-              {hoveredTip ? (
-                <p
+              {hoveredTip && (
+                <div
                   key={hoveredTip.title}
-                  className="text-sm sm:text-base text-white font-medium leading-snug animate-game-tooltip"
+                  className="px-4 sm:px-5 py-1.5 sm:py-2 rounded-2xl bg-slate-950/85 backdrop-blur-md border border-amber-300/30 text-center shadow-xl animate-game-tooltip"
                 >
-                  <span className="font-bold text-amber-300 mr-1.5">{hoveredTip.title}:</span>
-                  <span>{hoveredTip.text}</span>
-                </p>
-              ) : (
-                <p className="text-xs sm:text-sm text-slate-300/90 font-medium">{defaultHintText}</p>
+                  <p className="text-xs sm:text-sm lg:text-base text-white font-medium leading-snug">
+                    <span className="font-bold text-amber-300 mr-1.5">{hoveredTip.title}:</span>
+                    <span>{hoveredTip.text}</span>
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -618,7 +839,7 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
       ) : (
         /* APRENDER -> PAÍSES OVERLAY ATLAS (CLEAN GAME PANEL OVER BACKDROP) */
         <main className="relative z-10 flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 pb-4 sm:pb-6 flex flex-col min-h-0 animate-game-submenu">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 shrink-0">
             <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white drop-shadow">
               {isEs ? 'Aprender · Países' : 'Learn · Countries'}
             </h1>
@@ -630,6 +851,15 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
                   playSelectSound(soundEnabled);
                   onStartCountryReview(selectedContinent);
                 }}
+                onMouseEnter={() =>
+                  showTip(
+                    isEs ? 'Repasar en el mapa' : 'Review on Map',
+                    isEs
+                      ? 'Recorre país por país en el mapa escuchando su pronunciación.'
+                      : 'Step through each country on the map while hearing its pronunciation.'
+                  )
+                }
+                onMouseLeave={clearTip}
                 className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 border-b-2 border-sky-700 text-white font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 transition-all active:translate-y-0.5 whitespace-nowrap cursor-pointer"
               >
                 <Compass className="w-4 h-4" />
@@ -642,6 +872,15 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
                   playSelectSound(soundEnabled);
                   onStartLearnEvaluation(4, selectedContinent);
                 }}
+                onMouseEnter={() =>
+                  showTip(
+                    isEs ? 'Quiz del continente' : 'Continent Quiz',
+                    isEs
+                      ? 'Responde preguntas rápidas para evaluar lo aprendido en este continente.'
+                      : 'Answer quick questions to test what you learned about this continent.'
+                  )
+                }
+                onMouseLeave={clearTip}
                 className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 border-b-2 border-amber-600 text-slate-950 font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 transition-all active:translate-y-0.5 whitespace-nowrap cursor-pointer"
               >
                 <Trophy className="w-4 h-4" />
@@ -650,10 +889,24 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
             </div>
           </div>
 
+          {/* Floating Hover Tip Bar for Learn Countries Menu (only visible when hovering) */}
+          {hoveredTip && (
+            <div className="pb-2 shrink-0 flex justify-center">
+              <div
+                key={hoveredTip.title}
+                className="px-3.5 py-1 rounded-xl bg-slate-950/85 backdrop-blur-md border border-amber-300/30 text-xs text-white shadow-lg animate-game-tooltip"
+              >
+                <span className="font-bold text-amber-300 mr-1.5">{hoveredTip.title}:</span>
+                <span>{hoveredTip.text}</span>
+              </div>
+            </div>
+          )}
+
           {/* Continent Selector Tabs */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-3 shrink-0">
             {CONTINENT_TABS.map((tab) => {
               const active = selectedContinent === tab.id;
+              const tabName = isEs ? tab.es : tab.en;
               return (
                 <button
                   key={tab.id}
@@ -661,14 +914,24 @@ export const GameMenuStage: React.FC<GameMenuStageProps> = ({
                   onClick={() => {
                     playHoverSound(soundEnabled);
                     setSelectedContinent(tab.id);
+                    speakGeoName(tabName, currentLang, soundEnabled);
                   }}
+                  onMouseEnter={() =>
+                    showTip(
+                      tabName,
+                      isEs
+                        ? `Muestra todos los países de ${tabName}.`
+                        : `Show all countries located in ${tabName}.`
+                    )
+                  }
+                  onMouseLeave={clearTip}
                   className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                     active
                       ? 'bg-emerald-500 text-white border-b-2 border-emerald-700 shadow-md'
                       : 'bg-slate-900/75 text-slate-200 hover:bg-slate-800 border border-white/15'
                   }`}
                 >
-                  {isEs ? tab.es : tab.en}
+                  {tabName}
                 </button>
               );
             })}
