@@ -193,7 +193,7 @@ export const PlayReviewPanel: React.FC<PlayReviewPanelProps> = ({
   return (
     <aside
       ref={panelRef}
-      className={`absolute top-2.5 sm:top-4 right-2 sm:right-4 w-[calc(100%-16px)] sm:w-[400px] landscape:w-[320px] sm:landscape:w-[350px] md:landscape:w-[370px] h-auto max-h-[calc(100%-1.25rem)] sm:max-h-[calc(100%-2rem)] bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl sm:rounded-3xl shadow-2xl p-2.5 sm:p-3 landscape:p-2 text-slate-100 ring-1 ring-sky-400/20 duration-300 flex flex-col min-h-0 select-text transition-all ${
+      className={`absolute top-2 right-2 lg:top-3 lg:right-3 w-[25.5%] min-w-[205px] max-w-[330px] portrait:w-[min(92vw,360px)] h-auto max-h-[calc(100%-1rem)] lg:max-h-[calc(100%-1.5rem)] bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-xl lg:rounded-2xl shadow-2xl p-2 lg:p-3 text-slate-100 ring-1 ring-sky-400/20 duration-300 flex flex-col min-h-0 select-text transition-all ${
         isBehind
           ? 'z-20 opacity-20 pointer-events-none scale-95'
           : 'z-40 opacity-100 pointer-events-auto scale-100 animate-in slide-in-from-right'

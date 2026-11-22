@@ -942,6 +942,11 @@ export default function App() {
                 foundTopicItemIds={topicGameFoundIds}
                 revealedTopicItemId={topicGameRevealedId}
                 onClickTopicItem={handleClickTopicItem}
+                hasRightPanel={
+                  (workspaceMode === 'explore' && workspaceTopic !== 'countries') ||
+                  workspaceMode === 'play' ||
+                  (workspaceTopic === 'countries' && isDossierOpen)
+                }
               />
             </Suspense>
 

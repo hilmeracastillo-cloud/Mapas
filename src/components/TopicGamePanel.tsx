@@ -82,7 +82,7 @@ export const TopicGamePanel: React.FC<TopicGamePanelProps> = ({
   return (
     <aside
       aria-label={title}
-      className="absolute top-3 sm:top-4 right-3 sm:right-4 z-30 w-[calc(100%-24px)] sm:w-[370px] h-auto max-h-[calc(100%-1.5rem)] sm:max-h-[calc(100%-2rem)] bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-xl flex flex-col overflow-hidden text-slate-900"
+      className="absolute top-2 right-2 lg:top-3 lg:right-3 z-30 w-[25.5%] min-w-[196px] max-w-[320px] portrait:w-[min(92vw,340px)] h-auto max-h-[calc(100%-1rem)] lg:max-h-[calc(100%-1.5rem)] bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-xl lg:rounded-2xl shadow-xl flex flex-col overflow-hidden text-slate-900"
       style={{ touchAction: 'pan-y' }}
     >
       {/* Header */}

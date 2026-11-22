@@ -41,6 +41,7 @@ interface LeafletMapProps {
   foundTopicItemIds?: string[];
   revealedTopicItemId?: string | null;
   onClickTopicItem?: (item: GeoTopicItem) => void;
+  hasRightPanel?: boolean;
 }
 
 export const LeafletMap: React.FC<LeafletMapProps> = ({
@@ -72,6 +73,7 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   foundTopicItemIds = [],
   revealedTopicItemId = null,
   onClickTopicItem,
+  hasRightPanel = false,
 }) => {
 
 
@@ -90,21 +92,82 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   const isContinentsTopic = Boolean(
     topicItems && topicItems.length > 0 && topicItems[0].topic === 'continents'
   );
+  const isPolesTopic = Boolean(
+    topicItems && topicItems.length > 0 && topicItems[0].topic === 'poles'
+  );
   const activeHighlightedContinentId = isContinentsTopic
     ? topicMode === 'explore'
       ? selectedTopicItemId
       : revealedTopicItemId
     : null;
 
-  // Initialize Leaflet Map
+  const isWorldOverview =
+    !selectedCountry &&
+    !highlightedIso2 &&
+    !activeFeatureBadge &&
+    !isReviewMode &&
+    !selectedTopicItemId &&
+    !revealedTopicItemId;
+
+  const isWorldOverviewRef = useRef<boolean>(isWorldOverview);
+  isWorldOverviewRef.current = isWorldOverview;
+
+  const fitWorldToViewport = useCallback(
+    (animate: boolean = false) => {
+      const map = mapInstanceRef.current;
+      const container = mapContainerRef.current;
+      if (!map || !container) return;
+
+      map.invalidateSize({ animate: false });
+
+      const rect = container.getBoundingClientRect();
+      const vw = rect.width || (typeof window !== 'undefined' ? window.innerWidth : 1280);
+      const vh = rect.height || (typeof window !== 'undefined' ? window.innerHeight : 720);
+      const isLandscape = vw >= vh;
+
+      // Reserve right-side padding when a side panel is open in landscape so the full world map
+      // stays completely visible on phones in horizontal orientation and 16:9 desktops alike.
+      const rightPanelPad =
+        hasRightPanel && isLandscape
+          ? Math.min(320, Math.max(196, Math.round(vw * 0.26))) + 12
+          : 10;
+
+      const worldBounds: L.LatLngBoundsExpression = isPolesTopic
+        ? [
+            [-80, -172],
+            [82, 178],
+          ]
+        : [
+            [-58, -172],
+            [75, 178],
+          ];
+
+      map.fitBounds(worldBounds, {
+        paddingTopLeft: [10, 8],
+        paddingBottomRight: [rightPanelPad, 8],
+        maxZoom: 2.5,
+        animate,
+        duration: animate ? 0.85 : 0,
+      });
+    },
+    [hasRightPanel, isPolesTopic]
+  );
+
+  const fitWorldRef = useRef(fitWorldToViewport);
+  fitWorldRef.current = fitWorldToViewport;
+
+  // Initialize Leaflet Map with fractional zoom support so the full world fits on mobile landscape screens
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
     const map = L.map(mapContainerRef.current, {
-      center: [20, 0],
-      zoom: 2,
-      minZoom: 1.8,
+      center: [16, 0],
+      zoom: 1,
+      minZoom: 0.5,
       maxZoom: 18,
+      zoomSnap: 0.25,
+      zoomDelta: 0.5,
+      wheelPxPerZoomLevel: 90,
       worldCopyJump: true,
       zoomControl: false,
     });
@@ -126,14 +189,46 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
 
     mapInstanceRef.current = map;
 
-    // Recalcular tamaño y presentar el mapamundi completo al inicializarse
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-      map.setView([20, 0], 2);
-    }, 150);
+    // Fit full world map immediately and after initial mobile layout settles
+    const timer1 = setTimeout(() => {
+      fitWorldRef.current(false);
+    }, 100);
+    const timer2 = setTimeout(() => {
+      if (isWorldOverviewRef.current) {
+        fitWorldRef.current(false);
+      }
+    }, 380);
+
+    // Re-fit full world cleanly whenever phone rotates (portrait <-> landscape) or viewport resizes
+    let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+    const handleViewportResize = () => {
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        if (!mapInstanceRef.current) return;
+        mapInstanceRef.current.invalidateSize({ animate: false });
+        if (isWorldOverviewRef.current) {
+          fitWorldRef.current(false);
+        }
+      }, 140);
+    };
+
+    const resizeObserver =
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(handleViewportResize)
+        : null;
+    if (resizeObserver && mapContainerRef.current) {
+      resizeObserver.observe(mapContainerRef.current);
+    }
+    window.addEventListener('orientationchange', handleViewportResize);
+    window.addEventListener('resize', handleViewportResize);
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      if (resizeTimeout) clearTimeout(resizeTimeout);
+      if (resizeObserver) resizeObserver.disconnect();
+      window.removeEventListener('orientationchange', handleViewportResize);
+      window.removeEventListener('resize', handleViewportResize);
       map.remove();
       mapInstanceRef.current = null;
     };
@@ -1297,17 +1392,16 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
   ]);
 
 
-  // El mapa de inicio de cualquier modo de trabajo debe presentar el mapamundi completo
+  // El mapa de inicio de cualquier modo de trabajo debe presentar el mapamundi completo adaptado al tamaño real de pantalla
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
-    if (!selectedCountry && !highlightedIso2 && !activeFeatureBadge && !isReviewMode && !selectedTopicItemId && !revealedTopicItemId) {
-      map.invalidateSize();
-      map.setView([20, 0], 2);
+    if (isWorldOverview) {
+      fitWorldToViewport(false);
     }
-  }, [currentMode, isPlayMode, selectedCountry, highlightedIso2, activeFeatureBadge, isReviewMode, selectedTopicItemId, revealedTopicItemId]);
+  }, [currentMode, isPlayMode, isWorldOverview, fitWorldToViewport]);
 
-  // Handle Fly-To Coords & Zoom Changes (or fit exact continent bounds when exploring continents)
+  // Handle Fly-To Coords & Zoom Changes (or fit exact continent/world bounds cleanly on mobile landscape)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -1318,16 +1412,20 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
       CONTINENT_VIEW_BOUNDS[activeHighlightedContinentId as CanonicalContinentId]
     ) {
       const bounds = CONTINENT_VIEW_BOUNDS[activeHighlightedContinentId as CanonicalContinentId];
-      const vw = typeof window !== 'undefined' ? window.innerWidth : 1280;
-      const vh = typeof window !== 'undefined' ? window.innerHeight : 720;
+      const rect = mapContainerRef.current?.getBoundingClientRect();
+      const vw = rect?.width || (typeof window !== 'undefined' ? window.innerWidth : 1280);
+      const vh = rect?.height || (typeof window !== 'undefined' ? window.innerHeight : 720);
       const isLandscape = vw >= vh;
-      const panelWidth = isLandscape ? Math.min(300, Math.max(176, Math.round(vw * 0.245))) : 0;
-      const rightPad = isLandscape ? panelWidth + 20 : 28;
+      const panelWidth =
+        hasRightPanel && isLandscape
+          ? Math.min(320, Math.max(196, Math.round(vw * 0.26)))
+          : 0;
+      const rightPad = isLandscape ? panelWidth + 16 : 20;
       map.flyToBounds(bounds, {
-        paddingTopLeft: [32, 32],
-        paddingBottomRight: [rightPad, 32],
-        maxZoom: 4.2,
-        duration: 1.25,
+        paddingTopLeft: [20, 16],
+        paddingBottomRight: [rightPad, 16],
+        maxZoom: vh < 500 ? 3.25 : 4.2,
+        duration: 1.1,
         easeLinearity: 0.25,
       });
       return;
@@ -1335,19 +1433,44 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
 
     if (!flyToCoords) return;
 
-    map.flyTo(flyToCoords, flyToZoom || 6, {
-      duration: 1.5,
+    // Any request with zoom <= 2 means "show the complete world map" -> fit responsively for phones & desktop
+    if (!flyToZoom || flyToZoom <= 2) {
+      fitWorldToViewport(true);
+      return;
+    }
+
+    const rect = mapContainerRef.current?.getBoundingClientRect();
+    const vh = rect?.height || (typeof window !== 'undefined' ? window.innerHeight : 720);
+    const adjustedZoom = vh < 500 ? Math.max(1.25, flyToZoom - 0.75) : flyToZoom;
+
+    map.flyTo(flyToCoords, adjustedZoom, {
+      duration: 1.25,
       easeLinearity: 0.25,
     });
-  }, [flyToCoords, flyToZoom, isContinentsTopic, activeHighlightedContinentId]);
+  }, [flyToCoords, flyToZoom, isContinentsTopic, activeHighlightedContinentId, hasRightPanel, fitWorldToViewport]);
 
   return (
     <div className="relative w-full h-full bg-slate-950 overflow-hidden select-none">
       <div ref={mapContainerRef} className="w-full h-full z-0" />
 
+      {/* 1-Tap Full World Map Reset Button (directly below Leaflet +/- zoom controls) */}
+      <button
+        type="button"
+        onClick={() => fitWorldToViewport(true)}
+        title={currentLang === 'es' ? 'Ver mapamundi completo' : 'Fit full world map'}
+        aria-label={currentLang === 'es' ? 'Ver mapamundi completo' : 'Fit full world map'}
+        className="absolute top-[82px] left-[10px] z-[450] w-[30px] h-[30px] rounded bg-white hover:bg-slate-100 text-slate-800 border-2 border-black/20 shadow-md flex items-center justify-center transition-colors cursor-pointer"
+      >
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="9.5" />
+          <path d="M2.5 12h19" />
+          <path d="M12 2.5a14 14 0 0 1 0 19a14 14 0 0 1 0-19" />
+        </svg>
+      </button>
+
       {/* Loading Indicator for GeoJSON */}
       {(isContinentsTopic ? !continentsGeoData : isLoadingGeo) && (
-        <div className="absolute top-4 left-4 z-20 flex items-center gap-2 bg-slate-900/90 text-amber-300 px-3 py-1.5 rounded-full border border-slate-700 text-xs backdrop-blur-md shadow-md animate-pulse">
+        <div className="absolute top-3 left-12 z-20 flex items-center gap-2 bg-slate-900/90 text-amber-300 px-3 py-1.5 rounded-full border border-slate-700 text-xs backdrop-blur-md shadow-md animate-pulse">
           <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
@@ -1356,12 +1479,12 @@ export const LeafletMap: React.FC<LeafletMapProps> = ({
         </div>
       )}
 
-      {/* Cartographic Compass Rose Watermark */}
-      <div className="absolute bottom-6 left-6 pointer-events-none z-10 opacity-70 flex flex-col items-center">
-        <div className="w-10 h-10 rounded-full border border-amber-400/40 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center text-amber-400 font-bold text-xs shadow-inner">
+      {/* Cartographic Compass Rose Watermark (hidden on very short landscape phones to save map space) */}
+      <div className="hidden sm:flex absolute bottom-4 left-4 pointer-events-none z-10 opacity-65 flex-col items-center">
+        <div className="w-9 h-9 rounded-full border border-amber-400/40 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center text-amber-400 font-bold text-[11px] shadow-inner">
           <span className="transform -translate-y-0.5">N ▲</span>
         </div>
-        <span className="text-[10px] text-slate-400 font-mono tracking-widest mt-1">GEOMASTER</span>
+        <span className="text-[9px] text-slate-400 font-mono tracking-widest mt-0.5">GEOMASTER</span>
       </div>
     </div>
   );
